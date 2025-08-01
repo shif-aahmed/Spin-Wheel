@@ -10,7 +10,7 @@ const Participants = ({ currentData }) => {
     const filtered = currentData.filter(p =>
       p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       p.number.toString().includes(searchTerm) ||
-      p.email.toLowerCase().includes(searchTerm.toLowerCase())
+      p.email?.toLowerCase().includes(searchTerm.toLowerCase())
     );
     setFilteredList(filtered);
   }, [searchTerm, currentData]);

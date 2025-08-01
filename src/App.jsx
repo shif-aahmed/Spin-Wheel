@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import HeaderWithResults from './components/HeaderWithResults';
 import Wheel from './components/Wheel';
 import Controls from './components/Controls';
@@ -8,26 +9,41 @@ import Participants from './components/Participants';
 import WinnerPopup from './components/WinnerPopup';
 import RigControls from './components/RigControls';
 import WheelOverlay from './components/WheelOverlay';
-
-import { MarchMystery, goldentries, participants as defaultParticipants } from './people';
 import './style.css';
 
 const MAX_SLICES = 60;
 
 
 const App = () => {
-  const [fullData, setFullData] = useState(MarchMystery);
+  const [fullData, setFullData] = useState([]);
   const [currentData, setCurrentData] = useState([]);
 
   const [customColors, setCustomColors] = useState([]);
   const [selectedSound, setSelectedSound] = useState('spin.mp3');
   const [applauseSound, setApplauseSound] = useState('applause1'); // ✅ NEW
 
-  const getNextArray = (currentArray) => {
-    if (currentArray === MarchMystery) return goldentries;
-    if (currentArray === goldentries) return defaultParticipants;
-    return MarchMystery;
-  };
+  useEffect(() => {
+  axios.get('http://localhost:4000/api/tickets') // or your server IP if deployed
+    .then(res => {
+      const transformed = res.data.map(row => ({
+        name: `${row.firstName} ${row.lastName}`,
+        number: row.ticketNumber
+      }));
+      setFullData(transformed);
+    })
+    .catch(err => {
+      console.error('Failed to fetch ticket data:', err);
+    });
+}, []);
+
+ const getNextArray = (currentArray) => {
+  const rotated = [...currentArray];
+  const first = rotated.shift(); 
+  rotated.push(first);           
+  return rotated;
+};
+
+
 
   const getRandomBatch = (fullList) => {
     const shuffled = [...fullList].sort(() => 0.5 - Math.random());
