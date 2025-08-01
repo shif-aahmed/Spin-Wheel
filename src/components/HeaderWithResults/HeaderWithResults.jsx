@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-
+import './HeaderWithResults.css';
 // This function updates the quick result display — called elsewhere in app logic
 export function updateQuickResults(winner, combination) {
   const quickResultDisplay = document.getElementById('quickResultDisplay');

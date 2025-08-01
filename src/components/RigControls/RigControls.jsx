@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-
+import './RigControls.css';
 const RigControls = ({ currentData }) => {
   useEffect(() => {
     const rigButton = document.querySelector('.rig-controls .btn');

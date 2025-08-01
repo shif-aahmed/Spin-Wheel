@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-
+import './WinnerPopup.css';
 const WinnerPopup = () => {
   useEffect(() => {
     const popup = document.getElementById('winnerPopup');

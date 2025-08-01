@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import HeaderWithResults from './components/HeaderWithResults';
-import Wheel from './components/Wheel';
-import Controls from './components/Controls';
-import Results from './components/Results';
-import WinnersLadder from './components/WinnersLadder';
-import Participants from './components/Participants';
-import WinnerPopup from './components/WinnerPopup';
-import RigControls from './components/RigControls';
-import WheelOverlay from './components/WheelOverlay';
+import HeaderWithResults from './components/HeaderWithResults/HeaderWithResults';
+import Wheel from './components/Wheel/Wheel';
+import Controls from './components/Controls/Controls';
+import Results from './components/Results/Results';
+import WinnersLadder from './components/WinnersLadder/WinnersLadder';
+import Participants from './components/Participants/Participants';
+import WinnerPopup from './components/WinnerPopup/WinnerPopup';
+import RigControls from './components/RigControls/RigControls';
+import WheelOverlay from './components/WheelOverlay/WheelOverlay';
 
 import { MarchMystery, goldentries, participants as defaultParticipants } from './people';
 import './style.css';
@@ -44,10 +44,11 @@ const App = () => {
         onColorsChange={setCustomColors}
         onSoundChange={setSelectedSound}
         onApplauseSoundChange={setApplauseSound} // ✅ NEW
-      /></div>
+      />
+      <HeaderWithResults /></div>
     <div className="main-layout">
       
-      <HeaderWithResults />
+      
 
       <div className="container">
         <div className="wheel-section">

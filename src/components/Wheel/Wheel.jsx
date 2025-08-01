@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { updateQuickResults } from './HeaderWithResults';
+import './Wheel.css';
+import { updateQuickResults } from '../HeaderWithResults/HeaderWithResults';
 
 const MAX_SLICES = 70;
 
@@ -12,7 +13,7 @@ const Wheel = ({
   getRandomBatch,
   customColors = [],
   selectedSound = 'spin1',
-  applauseSound = 'applause1' // ✅ NEW
+  applauseSound = 'applause1'
 }) => {
   const isSpinning = useRef(false);
   const currentRotation = useRef(0);
@@ -21,7 +22,7 @@ const Wheel = ({
   const [sliceAngle, setSliceAngle] = useState(360 / MAX_SLICES);
 
   const spinSoundRef = useRef(null);
-  const applauseRef = useRef(null); // ✅ NEW
+  const applauseRef = useRef(null);
 
   useEffect(() => {
     const soundMap = {
@@ -55,7 +56,7 @@ const Wheel = ({
     setSliceAngle(360 / newBatch.length);
   };
 
-  const spinWheel = () => {
+  const spinWheel = (manualWinner = null) => {
     if (!currentData.length || isSpinning.current) return;
     isSpinning.current = true;
 
@@ -64,7 +65,9 @@ const Wheel = ({
       spinSoundRef.current.play().catch((err) => console.warn('Spin sound error', err));
     }
 
-    const winnerIndex = riggedWinnerIndex.current ?? Math.floor(Math.random() * currentData.length);
+    const winner = manualWinner || currentData[riggedWinnerIndex.current ?? Math.floor(Math.random() * currentData.length)];
+    const winnerIndex = currentData.findIndex(p => p.number === winner.number);
+
     const currentEffectiveRotation = currentRotation.current % 360;
     const winnerCenterAngle = winnerIndex * sliceAngle + sliceAngle / 2;
     const angleToPointer = 270 - winnerCenterAngle;
@@ -82,13 +85,16 @@ const Wheel = ({
     }
 
     setTimeout(() => {
-      const winner = currentData[winnerIndex];
+      // ✅ STOP spin sound
+      if (spinSoundRef.current) {
+        spinSoundRef.current.pause();
+        spinSoundRef.current.currentTime = 0;
+      }
+
+      // ✅ UPDATE small winner block
       updateQuickResults(winner, winner.number);
 
-      window.dispatchEvent(new CustomEvent('add-winner-to-ladder', {
-        detail: { winner }
-      }));
-
+      // ✅ SHOW winner popup
       const popup = document.getElementById('winnerPopup');
       if (popup) {
         popup.style.display = 'block';
@@ -98,10 +104,15 @@ const Wheel = ({
         if (numberEl) numberEl.textContent = winner.number;
       }
 
+      // ✅ PLAY applause
       if (applauseRef.current) {
         applauseRef.current.currentTime = 0;
         applauseRef.current.play().catch((err) => console.warn('Applause sound error', err));
       }
+
+      window.dispatchEvent(new CustomEvent('add-winner-to-ladder', {
+        detail: { winner }
+      }));
 
       riggedWinnerIndex.current = null;
       isSpinning.current = false;
@@ -126,9 +137,16 @@ const Wheel = ({
   }, [fullData]);
 
   useEffect(() => {
+    const handleManualWinner = (e) => {
+      spinWheel(e.detail.winner);
+    };
+
     window.addEventListener('spin-wheel', spinWheel);
+    window.addEventListener('manual-winner-selected', handleManualWinner);
+
     return () => {
       window.removeEventListener('spin-wheel', spinWheel);
+      window.removeEventListener('manual-winner-selected', handleManualWinner);
     };
   }, [currentData, sliceAngle]);
 

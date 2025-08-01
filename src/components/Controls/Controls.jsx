@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-
+import './Controls.css';
 const Controls = () => {
   useEffect(() => {
     const spinBtn = document.getElementById('spinBtn');

@@ -1,0 +1,51 @@
+.winners-ladder {
+  margin-top: 30px;
+  background: white;
+  border-radius: 10px;
+  max-width: 25rem !important;
+  padding: 20px;
+  margin-left: -30rem !important;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+  margin-bottom: 50px;
+}
+
+.winners-ladder h2 {
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.winner-entry {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.winner-position {
+  font-weight: bold;
+  width: 30px;
+  color: var(--primary-color);
+}
+
+.winner-name {
+  flex-grow: 1;
+  padding: 0 15px;
+}
+
+.winner-combination {
+  font-family: monospace;
+  color: var(--accent-color);
+}
+
+.gold {
+  color: #ffd700;
+}
+
+.silver {
+  color: #c0c0c0;
+}
+
+.bronze {
+  color: #cd7f32;
+}

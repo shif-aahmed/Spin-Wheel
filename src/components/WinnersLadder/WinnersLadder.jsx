@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-
+import './WinnersLadder.css';
 const WinnersLadder = () => {
   const winnersListRef = useRef(null);
 
