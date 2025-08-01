@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-
+import './Results.css';
 const Results = () => {
   const [status, setStatus] = useState('Ready to spin...');
   const [combination, setCombination] = useState('');

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-
+import './Participants.css';
 const Participants = ({ currentData }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredList, setFilteredList] = useState([]);
