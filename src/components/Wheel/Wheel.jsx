@@ -21,6 +21,7 @@ const Wheel = ({
   const currentRotation = useRef(0);
   const outerWheelRef = useRef(null);
   const [sliceAngle, setSliceAngle] = useState(360 / MAX_SLICES);
+  const [showBlankScreen, setShowBlankScreen] = useState(false);
 
   const spinSoundRef = useRef(null);
   const applauseRef = useRef(null);
@@ -35,7 +36,7 @@ const Wheel = ({
   ]);
 
   const spinCount = useRef(0);
-  const [showBlankScreen, setShowBlankScreen] = useState(false); // ✅ added
+  const passwordVerified = useRef(false); // ✅ added
 
   useEffect(() => {
     const soundMap = {
@@ -68,6 +69,16 @@ const Wheel = ({
   };
 
   const spinWheel = () => {
+    // ✅ Password check before first spin
+    if (!passwordVerified.current) {
+      const input = prompt('Enter password to spin:');
+      if (input !== '1234') {
+        alert('Incorrect password. Try again.');
+        return;
+      }
+      passwordVerified.current = true;
+    }
+
     if (!currentData.length || isSpinning.current) return;
     isSpinning.current = true;
 
@@ -157,7 +168,6 @@ const Wheel = ({
           setImageIndex(prev => (prev + 1) % imageList.length);
           updateParticipantData();
 
-          // ✅ Show blank screen after 4th spin
           if (spinCount.current === 4) {
             setShowBlankScreen(true);
           }
