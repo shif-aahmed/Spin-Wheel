@@ -2,11 +2,12 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 100px; /* adjust size */
-  height: 100px;
+  width: 200px; /* adjust size */
+  height: 200px;
   transform: translate(-50%, -50%);
   z-index: 2;
   pointer-events: none;
+  border-radius: 50%;
 }
 
 .wheel-center-image img {

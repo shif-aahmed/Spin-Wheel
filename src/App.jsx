@@ -10,13 +10,14 @@ import RigControls from './components/RigControls/RigControls';
 import WheelOverlay from './components/WheelOverlay/WheelOverlay';
 
 import './style.css';
-import data from './people';
-
-const { MarchMystery, goldentries, participants } = data;
+import { MarchMystery, goldentries, participants } from './people';
 
 const MAX_SLICES = 60;
 
 const App = () => {
+  const datasets = [participants, MarchMystery, goldentries];
+  const [datasetIndex, setDatasetIndex] = useState(0);
+
   const [fullData, setFullData] = useState([]);
   const [currentData, setCurrentData] = useState([]);
 
@@ -25,17 +26,18 @@ const App = () => {
   const [applauseSound, setApplauseSound] = useState('applause1');
 
   useEffect(() => {
-    const transformed = participants.map(row => ({
+    const selected = datasets[datasetIndex];
+    const transformed = selected.map(row => ({
       name: row.name,
       number: row.number
     }));
     setFullData(transformed);
-  }, []);
+  }, [datasetIndex]);
 
   const getNextArray = (currentArray) => {
     const rotated = [...currentArray];
-    const first = rotated.shift(); 
-    rotated.push(first);           
+    const first = rotated.shift();
+    rotated.push(first);
     return rotated;
   };
 
@@ -47,6 +49,10 @@ const App = () => {
   useEffect(() => {
     setCurrentData(getRandomBatch(fullData));
   }, [fullData]);
+
+  const handleSpinEnd = () => {
+    setDatasetIndex((prevIndex) => (prevIndex + 1) % datasets.length);
+  };
 
   return (
     <>
@@ -72,6 +78,7 @@ const App = () => {
               customColors={customColors}
               selectedSound={selectedSound}
               applauseSound={applauseSound}
+              onSpinEnd={handleSpinEnd}
             />
             <Controls />
             <Results />
