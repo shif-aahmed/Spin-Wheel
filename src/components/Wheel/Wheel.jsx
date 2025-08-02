@@ -28,14 +28,14 @@ const Wheel = ({
   const imageList = ['/images/Xbox.jpg', '/images/3.jpg', '/images/cash.jpg'];
   const [imageIndex, setImageIndex] = useState(0);
 
-  // ✅ Hardcoded Winners
   const riggedWinners = useRef([
     { name: 'Waseem Malik', ticketNumber: 'F5' },
     { name: 'Alan Mackenzie', ticketNumber: '1197' },
     { name: 'Marc', ticketNumber: '743' }
   ]);
 
-  const spinCount = useRef(0); // ✅ Track number of spins
+  const spinCount = useRef(0);
+  const [showBlankScreen, setShowBlankScreen] = useState(false); // ✅ added
 
   useEffect(() => {
     const soundMap = {
@@ -71,7 +71,7 @@ const Wheel = ({
     if (!currentData.length || isSpinning.current) return;
     isSpinning.current = true;
 
-    spinCount.current += 1; // ✅ Increment spin count
+    spinCount.current += 1;
 
     if (spinSoundRef.current) {
       spinSoundRef.current.currentTime = 0;
@@ -82,7 +82,6 @@ const Wheel = ({
     let winner;
     let winnerIndex;
 
-    // ✅ First 3 spins — rigged
     if (spinCount.current <= 3) {
       const nextWinner = riggedWinners.current[spinCount.current - 1];
       winnerIndex = batch.findIndex(
@@ -96,7 +95,6 @@ const Wheel = ({
       }
       winner = batch[winnerIndex];
     } else {
-      // ✅ From 4th spin onwards — random
       winnerIndex = Math.floor(Math.random() * batch.length);
       winner = batch[winnerIndex];
     }
@@ -150,12 +148,20 @@ const Wheel = ({
       const checkPopupClose = setInterval(() => {
         if (popup && popup.style.display === 'none') {
           clearInterval(checkPopupClose);
+
           if (applauseRef.current) {
             applauseRef.current.pause();
             applauseRef.current.currentTime = 0;
           }
+
           setImageIndex(prev => (prev + 1) % imageList.length);
           updateParticipantData();
+
+          // ✅ Show blank screen after 4th spin
+          if (spinCount.current === 4) {
+            setShowBlankScreen(true);
+          }
+
           if (onSpinEnd) onSpinEnd();
         }
       }, 300);
@@ -252,15 +258,29 @@ const Wheel = ({
   };
 
   return (
-    <div className="wheel-container">
-      <div className="pointer"></div>
-      <WheelCenterImage src={imageList[imageIndex]} />
-      <div className="wheel outer-wheel" ref={outerWheelRef} id="outerWheel">
-        <svg width="550" height="550" viewBox="0 0 550 550">
-          {renderWheelSlices()}
-        </svg>
+    <>
+      {showBlankScreen && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          backgroundColor: 'black',
+          zIndex: 9999
+        }} />
+      )}
+
+      <div className="wheel-container">
+        <div className="pointer"></div>
+        <WheelCenterImage src={imageList[imageIndex]} />
+        <div className="wheel outer-wheel" ref={outerWheelRef} id="outerWheel">
+          <svg width="550" height="550" viewBox="0 0 550 550">
+            {renderWheelSlices()}
+          </svg>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
