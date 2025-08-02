@@ -22,7 +22,7 @@ const WinnersLadder = () => {
         newEntry.innerHTML = `
           <div class="winner-position"></div>
           <div class="winner-name">${winner.name}</div>
-          <div class="winner-combination">${winner.number}</div>
+          <div class="winner-combination">${winner.ticketNumber}</div>
         `;
 
         winnersList.prepend(newEntry);

@@ -6,7 +6,7 @@ export function updateQuickResults(winner, combination) {
   if (quickResultDisplay) {
     quickResultDisplay.innerHTML = `
       <div><strong>Name:</strong> ${winner.name}</div>
-      <div><strong>Combination:</strong> ${winner.number}</div>
+      <div><strong>Combination:</strong> ${winner.ticketNumber}</div>
     `;
   }
 }

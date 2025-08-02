@@ -10,12 +10,12 @@ import RigControls from './components/RigControls/RigControls';
 import WheelOverlay from './components/WheelOverlay/WheelOverlay';
 
 import './style.css';
-import { MarchMystery, goldentries, participants } from './people';
+import { pakistan, dubai, celtic, AE1500 } from './people';
 
 const MAX_SLICES = 60;
 
 const App = () => {
-  const datasets = [participants, MarchMystery, goldentries];
+  const datasets = [pakistan, dubai, celtic, AE1500];
   const [datasetIndex, setDatasetIndex] = useState(0);
 
   const [fullData, setFullData] = useState([]);
@@ -25,11 +25,17 @@ const App = () => {
   const [selectedSound, setSelectedSound] = useState('spin.mp3');
   const [applauseSound, setApplauseSound] = useState('applause1');
 
+  const riggedWinnersList = [
+    { name: 'Waseem Malik', ticketNumber: 'F5' },
+    { name: 'Alan Mackenzie', ticketNumber: '1197' },
+    { name: 'Marc', ticketNumber: '743' }
+  ];
+
   useEffect(() => {
     const selected = datasets[datasetIndex];
     const transformed = selected.map(row => ({
       name: row.name,
-      number: row.number
+      ticketNumber: row.ticketNumber
     }));
     setFullData(transformed);
   }, [datasetIndex]);
@@ -42,8 +48,21 @@ const App = () => {
   };
 
   const getRandomBatch = (fullList) => {
-    const shuffled = [...fullList].sort(() => 0.5 - Math.random());
-    return shuffled.slice(0, Math.min(MAX_SLICES, fullList.length));
+    const requiredWinners = riggedWinnersList;
+
+    const validatedWinners = requiredWinners.filter(r =>
+      fullList.some(p => p.name === r.name && p.ticketNumber === r.ticketNumber)
+    );
+
+    const pool = fullList.filter(
+      p => !validatedWinners.some(r => r.name === p.name && r.ticketNumber === p.ticketNumber)
+    );
+
+    const shuffledPool = [...pool].sort(() => 0.5 - Math.random());
+
+    const batch = [...validatedWinners, ...shuffledPool.slice(0, Math.min(MAX_SLICES - validatedWinners.length, shuffledPool.length))];
+
+    return batch.sort(() => 0.5 - Math.random());
   };
 
   useEffect(() => {

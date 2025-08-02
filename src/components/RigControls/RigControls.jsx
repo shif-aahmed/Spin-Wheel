@@ -6,16 +6,16 @@ const RigControls = ({ currentData }) => {
     const rigOuterInput = document.getElementById('rigOuter');
 
     const handleRigClick = () => {
-      const selectedNumber = parseInt(rigOuterInput?.value);
-      if (isNaN(selectedNumber)) {
-        alert('Please enter a valid number');
+      const selectedticketNumber = parseInt(rigOuterInput?.value);
+      if (isNaN(selectedticketNumber)) {
+        alert('Please enter a valid ticketNumber');
         return;
       }
 
-      const winner = currentData.find(p => p.number === selectedNumber);
+      const winner = currentData.find(p => p.ticketNumber === selectedticketNumber);
 
       if (!winner) {
-        alert(`No participant found with number ${selectedNumber}`);
+        alert(`No participant found with ticketNumber ${selectedticketNumber}`);
         return;
       }
 
@@ -23,7 +23,7 @@ const RigControls = ({ currentData }) => {
       window.dispatchEvent(new CustomEvent('manual-winner-selected', { detail: { winner } }));
 
       // Removed the alert below to avoid duplicate popups
-      // alert(`Manually selected winner: ${winner.name} (#${winner.number})`);
+      // alert(`Manually selected winner: ${winner.name} (#${winner.ticketNumber})`);
     };
 
     rigButton?.addEventListener('click', handleRigClick);
@@ -39,7 +39,7 @@ const RigControls = ({ currentData }) => {
       <div className="rig-inputs">
         <div className="rig-input">
           <label htmlFor="rigOuter">Outer Wheel:</label>
-          <input type="number" id="rigOuter" min="1" max="80" placeholder="1-80" />
+          <input type="ticketNumber" id="rigOuter" min="1" max="80" placeholder="1-80" />
         </div>
       </div>
       <button className="btn btn-secondary">Set Rigged Stops</button>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './Participants.css';
+
 const Participants = ({ currentData }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredList, setFilteredList] = useState([]);
@@ -8,8 +9,8 @@ const Participants = ({ currentData }) => {
     if (!currentData || !Array.isArray(currentData)) return;
 
     const filtered = currentData.filter(p =>
-      p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.number.toString().includes(searchTerm) ||
+      p.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.ticketNumber?.toString().includes(searchTerm) ||
       p.email?.toLowerCase().includes(searchTerm.toLowerCase())
     );
     setFilteredList(filtered);
@@ -31,9 +32,9 @@ const Participants = ({ currentData }) => {
       <div className="participants-list">
         {filteredList.length > 0 ? (
           filteredList.map(participant => (
-            <div className="participant-item" key={participant.number} data-number={participant.number}>
+            <div className="participant-item" key={participant.ticketNumber} data-ticketnumber={participant.ticketNumber}>
               <div>{participant.name}</div>
-              <div className="participant-number">{participant.number}</div>
+              <div className="participant-ticketNumber">{participant.ticketNumber}</div>
             </div>
           ))
         ) : (

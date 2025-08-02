@@ -16,7 +16,7 @@ const Results = () => {
       setTimeout(() => {
         setStatus('Ready to spin...');
       }, 1500); 
-      setCombination(winner.number); // show combination if you still want
+      setCombination(winner.ticketNumber); // show combination if you still want
     };
 
     window.addEventListener('spin-start', handleSpinStart);

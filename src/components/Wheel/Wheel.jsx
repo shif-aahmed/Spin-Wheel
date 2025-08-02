@@ -20,18 +20,22 @@ const Wheel = ({
   const isSpinning = useRef(false);
   const currentRotation = useRef(0);
   const outerWheelRef = useRef(null);
-  const riggedWinnerIndex = useRef(null);
   const [sliceAngle, setSliceAngle] = useState(360 / MAX_SLICES);
 
   const spinSoundRef = useRef(null);
   const applauseRef = useRef(null);
 
-  const imageList = [
-    '/images/Xbox.jpg',
-    '/images/3.jpg',
-    '/images/cash.jpg'
-  ];
+  const imageList = ['/images/Xbox.jpg', '/images/3.jpg', '/images/cash.jpg'];
   const [imageIndex, setImageIndex] = useState(0);
+
+  // ✅ Hardcoded Winners
+  const riggedWinners = useRef([
+    { name: 'Waseem Malik', ticketNumber: 'F5' },
+    { name: 'Alan Mackenzie', ticketNumber: '1197' },
+    { name: 'Marc', ticketNumber: '743' }
+  ]);
+
+  const spinCount = useRef(0); // ✅ Track number of spins
 
   useEffect(() => {
     const soundMap = {
@@ -39,8 +43,7 @@ const Wheel = ({
       spin2: '/sounds/spin2.mp3',
       spin3: '/sounds/spin3.mp3',
     };
-    const soundSrc = soundMap[selectedSound] || soundMap.spin1;
-    spinSoundRef.current = new Audio(soundSrc);
+    spinSoundRef.current = new Audio(soundMap[selectedSound] || soundMap.spin1);
     spinSoundRef.current.volume = 0.9;
   }, [selectedSound]);
 
@@ -52,8 +55,7 @@ const Wheel = ({
       applause4: '/sounds/joke-punchline.mp3',
       applause5: '/sounds/twinkling.mp3',
     };
-    const applauseSrc = applauseMap[applauseSound] || applauseMap.applause1;
-    applauseRef.current = new Audio(applauseSrc);
+    applauseRef.current = new Audio(applauseMap[applauseSound] || applauseMap.applause1);
     applauseRef.current.volume = 1;
   }, [applauseSound]);
 
@@ -65,36 +67,56 @@ const Wheel = ({
     setSliceAngle(360 / newBatch.length);
   };
 
-  const spinWheel = (manualWinner = null) => {
+  const spinWheel = () => {
     if (!currentData.length || isSpinning.current) return;
     isSpinning.current = true;
 
+    spinCount.current += 1; // ✅ Increment spin count
+
     if (spinSoundRef.current) {
       spinSoundRef.current.currentTime = 0;
-      spinSoundRef.current.play().catch((err) => console.warn('Spin sound error', err));
+      spinSoundRef.current.play().catch(console.warn);
     }
 
-    let winnerIndex = riggedWinnerIndex.current ?? Math.floor(Math.random() * currentData.length);
-    if (manualWinner) {
-      winnerIndex = currentData.findIndex(p => p.number === manualWinner.number);
-      if (winnerIndex === -1) winnerIndex = 0;
+    let batch = [...currentData];
+    let winner;
+    let winnerIndex;
+
+    // ✅ First 3 spins — rigged
+    if (spinCount.current <= 3) {
+      const nextWinner = riggedWinners.current[spinCount.current - 1];
+      winnerIndex = batch.findIndex(
+        p => p.name === nextWinner.name && p.ticketNumber === nextWinner.ticketNumber
+      );
+      if (winnerIndex === -1) {
+        batch[Math.floor(Math.random() * batch.length)] = nextWinner;
+        winnerIndex = batch.findIndex(
+          p => p.name === nextWinner.name && p.ticketNumber === nextWinner.ticketNumber
+        );
+      }
+      winner = batch[winnerIndex];
+    } else {
+      // ✅ From 4th spin onwards — random
+      winnerIndex = Math.floor(Math.random() * batch.length);
+      winner = batch[winnerIndex];
     }
-    const winner = currentData[winnerIndex];
+
+    setCurrentData(batch);
+    const anglePerSlice = 360 / batch.length;
+    setSliceAngle(anglePerSlice);
 
     const currentEffectiveRotation = currentRotation.current % 360;
-    const winnerCenterAngle = winnerIndex * sliceAngle + sliceAngle / 2;
+    const winnerCenterAngle = winnerIndex * anglePerSlice + anglePerSlice / 2;
     const angleToPointer = 270 - winnerCenterAngle;
     const stopRotation = angleToPointer - currentEffectiveRotation;
     const normalizedStopRotation = stopRotation < 0 ? stopRotation + 360 : stopRotation;
-    const extraRotations = 5 * 360;
-    const totalRotation = currentRotation.current + extraRotations + normalizedStopRotation;
+    const totalRotation = currentRotation.current + 5 * 360 + normalizedStopRotation;
 
     currentRotation.current = totalRotation;
 
-    const outerWheel = outerWheelRef.current;
-    if (outerWheel) {
-      outerWheel.style.transition = 'transform 5s ease-out';
-      outerWheel.style.transform = `rotate(${totalRotation}deg)`;
+    if (outerWheelRef.current) {
+      outerWheelRef.current.style.transition = 'transform 5s ease-out';
+      outerWheelRef.current.style.transform = `rotate(${totalRotation}deg)`;
     }
 
     setTimeout(() => {
@@ -103,27 +125,26 @@ const Wheel = ({
         spinSoundRef.current.currentTime = 0;
       }
 
-      updateQuickResults(winner, winner.number);
+      updateQuickResults(winner, winner.ticketNumber);
 
       const popup = document.getElementById('winnerPopup');
       if (popup) {
         popup.style.display = 'block';
         const nameEl = document.getElementById('popupWinnerName');
-        const numberEl = document.getElementById('popupCombination');
+        const ticketNumberEl = document.getElementById('popupCombination');
         if (nameEl) nameEl.textContent = winner.name;
-        if (numberEl) numberEl.textContent = winner.number;
+        if (ticketNumberEl) ticketNumberEl.textContent = winner.ticketNumber;
       }
 
       if (applauseRef.current) {
         applauseRef.current.currentTime = 0;
-        applauseRef.current.play().catch((err) => console.warn('Applause sound error', err));
+        applauseRef.current.play().catch(console.warn);
       }
 
       window.dispatchEvent(new CustomEvent('add-winner-to-ladder', {
         detail: { winner }
       }));
 
-      riggedWinnerIndex.current = null;
       isSpinning.current = false;
 
       const checkPopupClose = setInterval(() => {
@@ -133,11 +154,9 @@ const Wheel = ({
             applauseRef.current.pause();
             applauseRef.current.currentTime = 0;
           }
-
           setImageIndex(prev => (prev + 1) % imageList.length);
-
           updateParticipantData();
-          if (onSpinEnd) onSpinEnd(); // ✅ Key line added
+          if (onSpinEnd) onSpinEnd();
         }
       }, 300);
     }, 5200);
@@ -150,18 +169,15 @@ const Wheel = ({
   }, [fullData]);
 
   useEffect(() => {
-    const handleManualWinner = (e) => {
-      spinWheel(e.detail.winner);
-    };
+    const handleManualWinner = (e) => spinWheel(e.detail.winner);
 
     window.addEventListener('spin-wheel', spinWheel);
     window.addEventListener('manual-winner-selected', handleManualWinner);
-
     return () => {
       window.removeEventListener('spin-wheel', spinWheel);
       window.removeEventListener('manual-winner-selected', handleManualWinner);
     };
-  }, [currentData, sliceAngle]);
+  }, [currentData]);
 
   const renderWheelSlices = () => {
     const radius = 275;
@@ -186,9 +202,7 @@ const Wheel = ({
         ? customColors[index % customColors.length]
         : `hsl(${(index * 360) / currentData.length}, 70%, 50%)`;
 
-      slices.push(
-        <path key={index} d={d} fill={fillColor} stroke="#2c3e50" strokeWidth="1" />
-      );
+      slices.push(<path key={index} d={d} fill={fillColor} stroke="#2c3e50" strokeWidth="1" />);
 
       const textAngle = startAngle + sliceAngle / 2;
       const angleRad = (Math.PI * textAngle) / 180;
@@ -198,7 +212,6 @@ const Wheel = ({
 
       const idX = cx + idRadius * Math.cos(angleRad);
       const idY = cy + idRadius * Math.sin(angleRad);
-
       const nameX = cx + nameRadius * Math.cos(angleRad);
       const nameY = cy + nameRadius * Math.sin(angleRad);
 
@@ -214,7 +227,7 @@ const Wheel = ({
           alignmentBaseline="middle"
           transform={`rotate(${textAngle}, ${idX}, ${idY})`}
         >
-          {p.number}
+          {p.ticketNumber}
         </text>
       );
 
