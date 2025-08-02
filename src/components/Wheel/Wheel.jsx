@@ -57,78 +57,78 @@ const Wheel = ({
   };
 
   const spinWheel = (manualWinner = null) => {
-    if (!currentData.length || isSpinning.current) return;
-    isSpinning.current = true;
+  if (!currentData.length || isSpinning.current) return;
+  isSpinning.current = true;
 
+  if (spinSoundRef.current) {
+    spinSoundRef.current.currentTime = 0;
+    spinSoundRef.current.play().catch((err) => console.warn('Spin sound error', err));
+  }
+
+  let winnerIndex = riggedWinnerIndex.current ?? Math.floor(Math.random() * currentData.length);
+  if (manualWinner) {
+    winnerIndex = currentData.findIndex(p => p.number === manualWinner.number);
+    if (winnerIndex === -1) winnerIndex = 0;
+  }
+  const winner = currentData[winnerIndex];
+
+  const currentEffectiveRotation = currentRotation.current % 360;
+  const winnerCenterAngle = winnerIndex * sliceAngle + sliceAngle / 2;
+  const angleToPointer = 270 - winnerCenterAngle;
+  const stopRotation = angleToPointer - currentEffectiveRotation;
+  const normalizedStopRotation = stopRotation < 0 ? stopRotation + 360 : stopRotation;
+  const extraRotations = 5 * 360;
+  const totalRotation = currentRotation.current + extraRotations + normalizedStopRotation;
+
+  currentRotation.current = totalRotation;
+
+  const outerWheel = outerWheelRef.current;
+  if (outerWheel) {
+    outerWheel.style.transition = 'transform 5s ease-out';
+    outerWheel.style.transform = `rotate(${totalRotation}deg)`;
+  }
+
+  setTimeout(() => {
     if (spinSoundRef.current) {
+      spinSoundRef.current.pause();
       spinSoundRef.current.currentTime = 0;
-      spinSoundRef.current.play().catch((err) => console.warn('Spin sound error', err));
     }
 
-    const winner = manualWinner || currentData[riggedWinnerIndex.current ?? Math.floor(Math.random() * currentData.length)];
-    const winnerIndex = currentData.findIndex(p => p.number === winner.number);
+    updateQuickResults(winner, winner.number);
 
-    const currentEffectiveRotation = currentRotation.current % 360;
-    const winnerCenterAngle = winnerIndex * sliceAngle + sliceAngle / 2;
-    const angleToPointer = 270 - winnerCenterAngle;
-    const stopRotation = angleToPointer - currentEffectiveRotation;
-    const normalizedStopRotation = stopRotation < 0 ? stopRotation + 360 : stopRotation;
-    const extraRotations = 5 * 360;
-    const totalRotation = currentRotation.current + extraRotations + normalizedStopRotation;
-
-    currentRotation.current = totalRotation;
-
-    const outerWheel = outerWheelRef.current;
-    if (outerWheel) {
-      outerWheel.style.transition = 'transform 5s ease-out';
-      outerWheel.style.transform = `rotate(${totalRotation}deg)`;
+    const popup = document.getElementById('winnerPopup');
+    if (popup) {
+      popup.style.display = 'block';
+      const nameEl = document.getElementById('popupWinnerName');
+      const numberEl = document.getElementById('popupCombination');
+      if (nameEl) nameEl.textContent = winner.name;
+      if (numberEl) numberEl.textContent = winner.number;
     }
 
-    setTimeout(() => {
-      // ✅ STOP spin sound
-      if (spinSoundRef.current) {
-        spinSoundRef.current.pause();
-        spinSoundRef.current.currentTime = 0;
-      }
+    if (applauseRef.current) {
+      applauseRef.current.currentTime = 0;
+      applauseRef.current.play().catch((err) => console.warn('Applause sound error', err));
+    }
 
-      // ✅ UPDATE small winner block
-      updateQuickResults(winner, winner.number);
+    window.dispatchEvent(new CustomEvent('add-winner-to-ladder', {
+      detail: { winner }
+    }));
 
-      // ✅ SHOW winner popup
-      const popup = document.getElementById('winnerPopup');
-      if (popup) {
-        popup.style.display = 'block';
-        const nameEl = document.getElementById('popupWinnerName');
-        const numberEl = document.getElementById('popupCombination');
-        if (nameEl) nameEl.textContent = winner.name;
-        if (numberEl) numberEl.textContent = winner.number;
-      }
+    riggedWinnerIndex.current = null;
+    isSpinning.current = false;
 
-      // ✅ PLAY applause
-      if (applauseRef.current) {
-        applauseRef.current.currentTime = 0;
-        applauseRef.current.play().catch((err) => console.warn('Applause sound error', err));
-      }
-
-      window.dispatchEvent(new CustomEvent('add-winner-to-ladder', {
-        detail: { winner }
-      }));
-
-      riggedWinnerIndex.current = null;
-      isSpinning.current = false;
-
-      const checkPopupClose = setInterval(() => {
-        if (popup && popup.style.display === 'none') {
-          clearInterval(checkPopupClose);
-          if (applauseRef.current) {
-            applauseRef.current.pause();
-            applauseRef.current.currentTime = 0;
-          }
-          updateParticipantData();
+    const checkPopupClose = setInterval(() => {
+      if (popup && popup.style.display === 'none') {
+        clearInterval(checkPopupClose);
+        if (applauseRef.current) {
+          applauseRef.current.pause();
+          applauseRef.current.currentTime = 0;
         }
-      }, 300);
-    }, 5200);
-  };
+        updateParticipantData();
+      }
+    }, 300);
+  }, 5200);
+};
 
   useEffect(() => {
     const initialBatch = getRandomBatch(fullData);
