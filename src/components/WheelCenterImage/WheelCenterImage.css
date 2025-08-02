@@ -1,0 +1,17 @@
+.wheel-center-image {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100px; /* adjust size */
+  height: 100px;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  pointer-events: none;
+}
+
+.wheel-center-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 50%; /* optional for a circular image */
+}

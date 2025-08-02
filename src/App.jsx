@@ -9,11 +9,12 @@ import WinnerPopup from './components/WinnerPopup/WinnerPopup';
 import RigControls from './components/RigControls/RigControls';
 import WheelOverlay from './components/WheelOverlay/WheelOverlay';
 
-import { MarchMystery, goldentries, participants as defaultParticipants } from './people';
 import './style.css';
+import data from './people';
+
+const { MarchMystery, goldentries, participants } = data;
 
 const MAX_SLICES = 60;
-
 
 const App = () => {
   const [fullData, setFullData] = useState([]);
@@ -21,30 +22,22 @@ const App = () => {
 
   const [customColors, setCustomColors] = useState([]);
   const [selectedSound, setSelectedSound] = useState('spin.mp3');
-  const [applauseSound, setApplauseSound] = useState('applause1'); // ✅ NEW
+  const [applauseSound, setApplauseSound] = useState('applause1');
 
   useEffect(() => {
-  axios.get('http://localhost:4000/api/tickets') // or your server IP if deployed
-    .then(res => {
-      const transformed = res.data.map(row => ({
-        name: `${row.firstName} ${row.lastName}`,
-        number: row.ticketNumber
-      }));
-      setFullData(transformed);
-    })
-    .catch(err => {
-      console.error('Failed to fetch ticket data:', err);
-    });
-}, []);
+    const transformed = participants.map(row => ({
+      name: row.name,
+      number: row.number
+    }));
+    setFullData(transformed);
+  }, []);
 
- const getNextArray = (currentArray) => {
-  const rotated = [...currentArray];
-  const first = rotated.shift(); 
-  rotated.push(first);           
-  return rotated;
-};
-
-
+  const getNextArray = (currentArray) => {
+    const rotated = [...currentArray];
+    const first = rotated.shift(); 
+    rotated.push(first);           
+    return rotated;
+  };
 
   const getRandomBatch = (fullList) => {
     const shuffled = [...fullList].sort(() => 0.5 - Math.random());
@@ -56,43 +49,41 @@ const App = () => {
   }, [fullData]);
 
   return (
-    <><div className='overlay'>
-      <WheelOverlay
-        onColorsChange={setCustomColors}
-        onSoundChange={setSelectedSound}
-        onApplauseSoundChange={setApplauseSound} // ✅ NEW
-      />
-      <HeaderWithResults /></div>
-    <div className="main-layout">
-      
-      
-
-      <div className="container">
-        <div className="wheel-section">
-          <Wheel
-            fullData={fullData}
-            setFullData={setFullData}
-            currentData={currentData}
-            setCurrentData={setCurrentData}
-            getNextArray={getNextArray}
-            getRandomBatch={getRandomBatch}
-            customColors={customColors}
-            selectedSound={selectedSound}
-            applauseSound={applauseSound} // ✅ NEW
-          />
-          <Controls />
-          <Results />
-          <WinnersLadder />
-        </div>
-
-        <Participants currentData={currentData} />
+    <>
+      <div className='overlay'>
+        <WheelOverlay
+          onColorsChange={setCustomColors}
+          onSoundChange={setSelectedSound}
+          onApplauseSoundChange={setApplauseSound}
+        />
+        <HeaderWithResults />
       </div>
 
-      <WinnerPopup />
-      <RigControls currentData={currentData} />
+      <div className="main-layout">
+        <div className="container">
+          <div className="wheel-section">
+            <Wheel
+              fullData={fullData}
+              setFullData={setFullData}
+              currentData={currentData}
+              setCurrentData={setCurrentData}
+              getNextArray={getNextArray}
+              getRandomBatch={getRandomBatch}
+              customColors={customColors}
+              selectedSound={selectedSound}
+              applauseSound={applauseSound}
+            />
+            <Controls />
+            <Results />
+            <WinnersLadder />
+          </div>
 
-  
-    </div>
+          <Participants currentData={currentData} />
+        </div>
+
+        <WinnerPopup />
+        <RigControls currentData={currentData} />
+      </div>
     </>
   );
 };

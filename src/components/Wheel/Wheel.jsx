@@ -55,7 +55,7 @@ const Wheel = ({
     setCurrentData(newBatch);
     setSliceAngle(360 / newBatch.length);
   };
-
+// spinn wheel
   const spinWheel = (manualWinner = null) => {
   if (!currentData.length || isSpinning.current) return;
   isSpinning.current = true;
