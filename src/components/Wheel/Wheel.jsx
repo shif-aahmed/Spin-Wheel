@@ -27,7 +27,7 @@ const Wheel = ({
   const spinSoundRef = useRef(null);
   const applauseRef = useRef(null);
 
-  const imageList = ['/images/Xbox.jpg', '/images/3.jpg', '/images/cash.jpg'];
+  const imageList = ['/images/pakistan.jpg', '/images/AE1500.jpg', '/images/celtic.jpg', '/images/dubai2.jpg'];
   const [imageIndex, setImageIndex] = useState(0);
 
   const riggedWinners = useRef([
@@ -41,8 +41,8 @@ const Wheel = ({
 
   useEffect(() => {
     const soundMap = {
-      spin1: '/sounds/spin.mp3',
-      spin2: '/sounds/spin2.mp3',
+      spin1: '/sounds/spin2.mp3',
+      spin2: '/sounds/spin.mp3',
       spin3: '/sounds/spin3.mp3',
     };
     spinSoundRef.current = new Audio(soundMap[selectedSound] || soundMap.spin1);
@@ -120,7 +120,7 @@ const Wheel = ({
     currentRotation.current = totalRotation;
 
     if (outerWheelRef.current) {
-      outerWheelRef.current.style.transition = 'transform 5s ease-out';
+      outerWheelRef.current.style.transition = 'transform 10s ease-out';
       outerWheelRef.current.style.transform = `rotate(${totalRotation}deg)`;
     }
 
@@ -152,7 +152,7 @@ const Wheel = ({
           if (onSpinEnd) onSpinEnd();
         }
       }, 300);
-    }, 5200);
+    }, 10200);
   };
 
   useEffect(() => {

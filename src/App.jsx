@@ -15,59 +15,67 @@ import { pakistan, dubai, celtic, AE1500 } from './people';
 const MAX_SLICES = 200;
 
 const App = () => {
-  const datasets = [pakistan, dubai, celtic, AE1500];
-  const [datasetIndex, setDatasetIndex] = useState(0);
+  const datasetsMap = {
+    1: pakistan,
+    2: AE1500,
+    3: celtic,
+    4: dubai
+  };
+
+  const [spinCount, setSpinCount] = useState(0);
   const [fullData, setFullData] = useState([]);
   const [currentData, setCurrentData] = useState([]);
   const [customColors, setCustomColors] = useState([]);
-  const [selectedSound, setSelectedSound] = useState('spin.mp3');
+  const [selectedSound, setSelectedSound] = useState('spin2.mp3');
   const [applauseSound, setApplauseSound] = useState('applause1');
 
   const isSpinningRef = useRef(false);
   const intervalID = useRef(null);
 
   const riggedWinnersList = [
-    { name: 'Waseem Malik', ticketNumber: 'F5' },
-    { name: 'Alan Mackenzie', ticketNumber: '1197' },
-    { name: 'Marc', ticketNumber: '743' }
+    { name: 'Waseem Malik', ticketNumber: 'F5' },       // pakistan
+    { name: 'Alan Mackenzie', ticketNumber: '1197' },   // AE1500
+    { name: 'Marc', ticketNumber: '743' }               // celtic
   ];
 
-  const getNextArray = (currentArray) => {
-    const rotated = [...currentArray];
-    const first = rotated.shift();
-    rotated.push(first);
-    return rotated;
-  };
-
-  const getRandomBatch = (fullList) => {
-    const requiredWinners = riggedWinnersList;
-    const validatedWinners = requiredWinners.filter(r =>
-      fullList.some(p => p.name === r.name && p.ticketNumber === r.ticketNumber)
-    );
-    const pool = fullList.filter(
-      p => !validatedWinners.some(r => r.name === p.name && r.ticketNumber === p.ticketNumber)
-    );
-    const shuffledPool = [...pool].sort(() => 0.5 - Math.random());
-    const batch = [...validatedWinners, ...shuffledPool.slice(0, Math.min(MAX_SLICES - validatedWinners.length, shuffledPool.length))];
-    return batch.sort(() => 0.5 - Math.random());
-  };
-
-  useEffect(() => {
-    const selected = datasets[datasetIndex];
-    const transformed = selected.map(row => ({ name: row.name, ticketNumber: row.ticketNumber }));
-    setFullData(transformed);
-  }, [datasetIndex]);
-
-  useEffect(() => {
-    clearInterval(intervalID.current);
-    intervalID.current = setInterval(() => {
-      if (!isSpinningRef.current) {
-        const dynamicBatch = getRandomBatch(fullData);
-        setCurrentData(dynamicBatch);
+  const getRandomBatch = (fullList, winner = null) => {
+    const pool = [...fullList];
+    if (winner) {
+      const exists = pool.some(p => p.name === winner.name && p.ticketNumber === winner.ticketNumber);
+      if (!exists) {
+        pool[Math.floor(Math.random() * pool.length)] = winner;
       }
-    }, 100); // every 100ms
-    return () => clearInterval(intervalID.current);
-  }, [fullData]);
+    }
+    const shuffled = pool.sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, Math.min(MAX_SLICES, shuffled.length));
+  };
+
+  const prepareDataForSpin = () => {
+    const nextSpin = spinCount + 1;
+
+    let dataset = datasetsMap[4]; // default = dubai
+    let winner = null;
+
+    if (nextSpin === 1) {
+      dataset = datasetsMap[1];
+      winner = riggedWinnersList[0];
+    } else if (nextSpin === 2) {
+      dataset = datasetsMap[2];
+      winner = riggedWinnersList[1];
+    } else if (nextSpin === 3) {
+      dataset = datasetsMap[3];
+      winner = riggedWinnersList[2];
+    }
+
+    const transformed = dataset.map(p => ({ name: p.name, ticketNumber: p.ticketNumber }));
+    setFullData(transformed);
+    const batch = getRandomBatch(transformed, winner);
+    setCurrentData(batch);
+  };
+
+  useEffect(() => {
+    prepareDataForSpin();
+  }, [spinCount]);
 
   const handleSpinStart = () => {
     isSpinningRef.current = true;
@@ -75,7 +83,7 @@ const App = () => {
 
   const handleSpinEnd = () => {
     isSpinningRef.current = false;
-    setDatasetIndex((prevIndex) => (prevIndex + 1) % datasets.length);
+    setSpinCount(prev => prev + 1);
   };
 
   return (
@@ -97,8 +105,8 @@ const App = () => {
               setFullData={setFullData}
               currentData={currentData}
               setCurrentData={setCurrentData}
-              getNextArray={getNextArray}
-              getRandomBatch={getRandomBatch}
+              getNextArray={() => fullData} // not rotating anymore
+              getRandomBatch={(list) => getRandomBatch(list)}
               customColors={customColors}
               selectedSound={selectedSound}
               applauseSound={applauseSound}
