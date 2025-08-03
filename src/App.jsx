@@ -109,7 +109,7 @@ const App = () => {
             <Results />
             <WinnersLadder />
           </div>
-          <Participants currentData={currentData} />
+          <Participants currentData={fullData} />
         </div>
         <WinnerPopup />
         <RigControls currentData={currentData} />
