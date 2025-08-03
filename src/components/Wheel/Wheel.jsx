@@ -3,7 +3,7 @@ import './Wheel.css';
 import { updateQuickResults } from '../HeaderWithResults/HeaderWithResults';
 import WheelCenterImage from '../WheelCenterImage/WheelCenterImage';
 
-const MAX_SLICES = 70;
+const MAX_SLICES = 200;
 
 const Wheel = ({
   setCurrentData,
@@ -15,6 +15,7 @@ const Wheel = ({
   customColors = [],
   selectedSound = 'spin1',
   applauseSound = 'applause1',
+  onSpinStart,
   onSpinEnd
 }) => {
   const isSpinning = useRef(false);
@@ -36,7 +37,7 @@ const Wheel = ({
   ]);
 
   const spinCount = useRef(0);
-  const passwordVerified = useRef(false); // ✅ added
+  const passwordVerified = useRef(false);
 
   useEffect(() => {
     const soundMap = {
@@ -69,7 +70,6 @@ const Wheel = ({
   };
 
   const spinWheel = () => {
-    // ✅ Password check before first spin
     if (!passwordVerified.current) {
       const input = prompt('Enter password to spin:');
       if (input !== '1234') {
@@ -81,13 +81,10 @@ const Wheel = ({
 
     if (!currentData.length || isSpinning.current) return;
     isSpinning.current = true;
+    if (onSpinStart) onSpinStart();
 
     spinCount.current += 1;
-
-    if (spinSoundRef.current) {
-      spinSoundRef.current.currentTime = 0;
-      spinSoundRef.current.play().catch(console.warn);
-    }
+    spinSoundRef.current?.play().catch(console.warn);
 
     let batch = [...currentData];
     let winner;
@@ -114,12 +111,11 @@ const Wheel = ({
     const anglePerSlice = 360 / batch.length;
     setSliceAngle(anglePerSlice);
 
+    // ✅ SHIFT WINNER LEFT BY 2 SLICES (to align with pointer)
+    const winnerAngle = winnerIndex * anglePerSlice + anglePerSlice * 1.5;
     const currentEffectiveRotation = currentRotation.current % 360;
-    const winnerCenterAngle = winnerIndex * anglePerSlice + anglePerSlice / 2;
-    const angleToPointer = 270 - winnerCenterAngle;
-    const stopRotation = angleToPointer - currentEffectiveRotation;
-    const normalizedStopRotation = stopRotation < 0 ? stopRotation + 360 : stopRotation;
-    const totalRotation = currentRotation.current + 5 * 360 + normalizedStopRotation;
+    const angleToPointer = (270 - winnerAngle - currentEffectiveRotation + 360) % 360;
+    const totalRotation = currentRotation.current + 360 * 5 + angleToPointer;
 
     currentRotation.current = totalRotation;
 
@@ -129,49 +125,30 @@ const Wheel = ({
     }
 
     setTimeout(() => {
-      if (spinSoundRef.current) {
-        spinSoundRef.current.pause();
-        spinSoundRef.current.currentTime = 0;
-      }
-
+      spinSoundRef.current?.pause();
+      spinSoundRef.current.currentTime = 0;
       updateQuickResults(winner, winner.ticketNumber);
 
       const popup = document.getElementById('winnerPopup');
       if (popup) {
         popup.style.display = 'block';
-        const nameEl = document.getElementById('popupWinnerName');
-        const ticketNumberEl = document.getElementById('popupCombination');
-        if (nameEl) nameEl.textContent = winner.name;
-        if (ticketNumberEl) ticketNumberEl.textContent = winner.ticketNumber;
+        document.getElementById('popupWinnerName').textContent = winner.name;
+        document.getElementById('popupCombination').textContent = winner.ticketNumber;
       }
 
-      if (applauseRef.current) {
-        applauseRef.current.currentTime = 0;
-        applauseRef.current.play().catch(console.warn);
-      }
-
-      window.dispatchEvent(new CustomEvent('add-winner-to-ladder', {
-        detail: { winner }
-      }));
+      applauseRef.current?.play().catch(console.warn);
+      window.dispatchEvent(new CustomEvent('add-winner-to-ladder', { detail: { winner } }));
 
       isSpinning.current = false;
 
       const checkPopupClose = setInterval(() => {
         if (popup && popup.style.display === 'none') {
           clearInterval(checkPopupClose);
-
-          if (applauseRef.current) {
-            applauseRef.current.pause();
-            applauseRef.current.currentTime = 0;
-          }
-
+          applauseRef.current?.pause();
+          applauseRef.current.currentTime = 0;
           setImageIndex(prev => (prev + 1) % imageList.length);
           updateParticipantData();
-
-          if (spinCount.current === 4) {
-            setShowBlankScreen(true);
-          }
-
+          if (spinCount.current === 4) setShowBlankScreen(true);
           if (onSpinEnd) onSpinEnd();
         }
       }, 300);
@@ -186,7 +163,6 @@ const Wheel = ({
 
   useEffect(() => {
     const handleManualWinner = (e) => spinWheel(e.detail.winner);
-
     window.addEventListener('spin-wheel', spinWheel);
     window.addEventListener('manual-winner-selected', handleManualWinner);
     return () => {
@@ -202,6 +178,9 @@ const Wheel = ({
     const r = radius;
     const slices = [];
 
+    const totalEntries = currentData.length;
+    const minimalTextThreshold = 1000;
+
     currentData.forEach((p, index) => {
       const startAngle = index * sliceAngle;
       const endAngle = startAngle + sliceAngle;
@@ -216,52 +195,34 @@ const Wheel = ({
 
       const fillColor = customColors.length > 0
         ? customColors[index % customColors.length]
-        : `hsl(${(index * 360) / currentData.length}, 70%, 50%)`;
+        : `hsl(${(index * 360) / totalEntries}, 70%, 50%)`;
 
-      slices.push(<path key={index} d={d} fill={fillColor} stroke="#2c3e50" strokeWidth="1" />);
+      slices.push(<path key={index} d={d} fill={fillColor} stroke="#2c3e50" strokeWidth="0.2" />);
 
-      const textAngle = startAngle + sliceAngle / 2;
-      const angleRad = (Math.PI * textAngle) / 180;
+      if (totalEntries <= minimalTextThreshold) {
+        const textAngle = startAngle + sliceAngle / 2;
+        const angleRad = (Math.PI * textAngle) / 180;
+        const idX = cx + r * 0.95 * Math.cos(angleRad);
+        const idY = cy + r * 0.95 * Math.sin(angleRad);
+        const nameX = cx + r * 0.73 * Math.cos(angleRad);
+        const nameY = cy + r * 0.73 * Math.sin(angleRad);
 
-      const idRadius = r * 0.95;
-      const nameRadius = r * 0.73;
+        slices.push(
+          <text key={`id-${index}`} x={idX} y={idY} fill="#fff" fontSize="6" fontWeight="bold"
+            textAnchor="middle" alignmentBaseline="middle"
+            transform={`rotate(${textAngle}, ${idX}, ${idY})`}>
+            {p.ticketNumber}
+          </text>
+        );
 
-      const idX = cx + idRadius * Math.cos(angleRad);
-      const idY = cy + idRadius * Math.sin(angleRad);
-      const nameX = cx + nameRadius * Math.cos(angleRad);
-      const nameY = cy + nameRadius * Math.sin(angleRad);
-
-      slices.push(
-        <text
-          key={`id-${index}`}
-          x={idX}
-          y={idY}
-          fill="#fff"
-          fontSize="10"
-          fontWeight="bold"
-          textAnchor="middle"
-          alignmentBaseline="middle"
-          transform={`rotate(${textAngle}, ${idX}, ${idY})`}
-        >
-          {p.ticketNumber}
-        </text>
-      );
-
-      slices.push(
-        <text
-          key={`name-${index}`}
-          x={nameX}
-          y={nameY}
-          fill="#fff"
-          fontSize="12"
-          fontWeight="bold"
-          textAnchor="middle"
-          alignmentBaseline="middle"
-          transform={`rotate(${textAngle}, ${nameX}, ${nameY})`}
-        >
-          {p.name}
-        </text>
-      );
+        slices.push(
+          <text key={`name-${index}`} x={nameX} y={nameY} fill="#fff" fontSize="6" fontWeight="bold"
+            textAnchor="middle" alignmentBaseline="middle"
+            transform={`rotate(${textAngle}, ${nameX}, ${nameY})`}>
+            {p.name}
+          </text>
+        );
+      }
     });
 
     return slices;
@@ -272,12 +233,8 @@ const Wheel = ({
       {showBlankScreen && (
         <div style={{
           position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100vw',
-          height: '100vh',
-          backgroundColor: 'black',
-          zIndex: 9999
+          top: 0, left: 0, width: '100vw', height: '100vh',
+          backgroundColor: 'black', zIndex: 9999
         }} />
       )}
 

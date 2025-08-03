@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import HeaderWithResults from './components/HeaderWithResults/HeaderWithResults';
 import Wheel from './components/Wheel/Wheel';
 import Controls from './components/Controls/Controls';
@@ -12,33 +12,25 @@ import WheelOverlay from './components/WheelOverlay/WheelOverlay';
 import './style.css';
 import { pakistan, dubai, celtic, AE1500 } from './people';
 
-const MAX_SLICES = 60;
+const MAX_SLICES = 200;
 
 const App = () => {
   const datasets = [pakistan, dubai, celtic, AE1500];
   const [datasetIndex, setDatasetIndex] = useState(0);
-
   const [fullData, setFullData] = useState([]);
   const [currentData, setCurrentData] = useState([]);
-
   const [customColors, setCustomColors] = useState([]);
   const [selectedSound, setSelectedSound] = useState('spin.mp3');
   const [applauseSound, setApplauseSound] = useState('applause1');
+
+  const isSpinningRef = useRef(false);
+  const intervalID = useRef(null);
 
   const riggedWinnersList = [
     { name: 'Waseem Malik', ticketNumber: 'F5' },
     { name: 'Alan Mackenzie', ticketNumber: '1197' },
     { name: 'Marc', ticketNumber: '743' }
   ];
-
-  useEffect(() => {
-    const selected = datasets[datasetIndex];
-    const transformed = selected.map(row => ({
-      name: row.name,
-      ticketNumber: row.ticketNumber
-    }));
-    setFullData(transformed);
-  }, [datasetIndex]);
 
   const getNextArray = (currentArray) => {
     const rotated = [...currentArray];
@@ -49,27 +41,40 @@ const App = () => {
 
   const getRandomBatch = (fullList) => {
     const requiredWinners = riggedWinnersList;
-
     const validatedWinners = requiredWinners.filter(r =>
       fullList.some(p => p.name === r.name && p.ticketNumber === r.ticketNumber)
     );
-
     const pool = fullList.filter(
       p => !validatedWinners.some(r => r.name === p.name && r.ticketNumber === p.ticketNumber)
     );
-
     const shuffledPool = [...pool].sort(() => 0.5 - Math.random());
-
     const batch = [...validatedWinners, ...shuffledPool.slice(0, Math.min(MAX_SLICES - validatedWinners.length, shuffledPool.length))];
-
     return batch.sort(() => 0.5 - Math.random());
   };
 
   useEffect(() => {
-    setCurrentData(getRandomBatch(fullData));
+    const selected = datasets[datasetIndex];
+    const transformed = selected.map(row => ({ name: row.name, ticketNumber: row.ticketNumber }));
+    setFullData(transformed);
+  }, [datasetIndex]);
+
+  useEffect(() => {
+    clearInterval(intervalID.current);
+    intervalID.current = setInterval(() => {
+      if (!isSpinningRef.current) {
+        const dynamicBatch = getRandomBatch(fullData);
+        setCurrentData(dynamicBatch);
+      }
+    }, 100); // every 100ms
+    return () => clearInterval(intervalID.current);
   }, [fullData]);
 
+  const handleSpinStart = () => {
+    isSpinningRef.current = true;
+  };
+
   const handleSpinEnd = () => {
+    isSpinningRef.current = false;
     setDatasetIndex((prevIndex) => (prevIndex + 1) % datasets.length);
   };
 
@@ -97,16 +102,15 @@ const App = () => {
               customColors={customColors}
               selectedSound={selectedSound}
               applauseSound={applauseSound}
+              onSpinStart={handleSpinStart}
               onSpinEnd={handleSpinEnd}
             />
             <Controls />
             <Results />
             <WinnersLadder />
           </div>
-
           <Participants currentData={currentData} />
         </div>
-
         <WinnerPopup />
         <RigControls currentData={currentData} />
       </div>
