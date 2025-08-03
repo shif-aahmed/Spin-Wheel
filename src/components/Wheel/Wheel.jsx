@@ -24,10 +24,11 @@ const Wheel = ({
   const [sliceAngle, setSliceAngle] = useState(360 / MAX_SLICES);
   const [showBlankScreen, setShowBlankScreen] = useState(false);
   const [currentVisualData, setCurrentVisualData] = useState([]);
+  const [isPopupVisible, setIsPopupVisible] = useState(false); // ✅ track popup
 
   const spinSoundRef = useRef(null);
   const applauseRef = useRef(null);
-  const intervalRef = useRef(null); // <-- added for auto-changing entries
+  const intervalRef = useRef(null);
 
   const imageList = ['/images/pakistan.jpg', '/images/AE1500.jpg', '/images/celtic.jpg', '/images/dubai2.jpg'];
   const [imageIndex, setImageIndex] = useState(0);
@@ -63,11 +64,11 @@ const Wheel = ({
   }, [applauseSound]);
 
   useEffect(() => {
-    // Start auto-updating currentData for the wheel only
     intervalRef.current = setInterval(() => {
       const newBatch = getRandomBatch(fullData);
       setCurrentVisualData(newBatch);
-    }, 100); // can set to 1 for more extreme flicker
+      setSliceAngle(360 / newBatch.length);
+    }, 100);
     return () => clearInterval(intervalRef.current);
   }, [fullData]);
 
@@ -76,7 +77,7 @@ const Wheel = ({
     isSpinning.current = true;
     if (onSpinStart) onSpinStart();
 
-    clearInterval(intervalRef.current); // stop auto changing entries on spin
+    clearInterval(intervalRef.current);
     spinSoundRef.current?.play().catch(console.warn);
 
     spinCount.current += 1;
@@ -98,8 +99,8 @@ const Wheel = ({
       winner = batch[winnerIndex];
     }
 
-    setCurrentData(batch); // actual data used in results
-    setCurrentVisualData(batch); // stop auto-changing now and use final fixed batch
+    setCurrentData(batch);
+    setCurrentVisualData(batch);
     setSliceAngle(360 / batch.length);
 
     const anglePerSlice = 360 / batch.length;
@@ -124,6 +125,7 @@ const Wheel = ({
         popup.style.display = 'block';
         document.getElementById('popupWinnerName').textContent = winner.name;
         document.getElementById('popupCombination').textContent = winner.ticketNumber;
+        setIsPopupVisible(true); // ✅ block background
       }
 
       applauseRef.current?.play().catch(console.warn);
@@ -132,18 +134,21 @@ const Wheel = ({
       isSpinning.current = false;
 
       const checkPopupClose = setInterval(() => {
+        const popup = document.getElementById('winnerPopup');
         if (popup && popup.style.display === 'none') {
           clearInterval(checkPopupClose);
           applauseRef.current?.pause();
           applauseRef.current.currentTime = 0;
           setImageIndex(prev => (prev + 1) % imageList.length);
+          setIsPopupVisible(false); // ✅ allow interaction again
+
           if (spinCount.current === 4) setShowBlankScreen(true);
           if (onSpinEnd) onSpinEnd();
 
-          // Restart auto-change for next spin
           intervalRef.current = setInterval(() => {
             const newBatch = getRandomBatch(fullData);
             setCurrentVisualData(newBatch);
+            setSliceAngle(360 / newBatch.length);
           }, 100);
         }
       }, 300);
@@ -225,6 +230,10 @@ const Wheel = ({
           top: 0, left: 0, width: '100vw', height: '100vh',
           backgroundColor: 'black', zIndex: 9999
         }} />
+      )}
+
+      {isPopupVisible && (
+        <div className="interaction-blocker"></div> // ✅ disables interaction without touching popup
       )}
 
       <div className="wheel-container">

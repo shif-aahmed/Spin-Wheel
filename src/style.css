@@ -34,6 +34,12 @@ body{
   align-items: center;
   flex-direction: row;
 }
+@media (max-width: 444px) {
+  .overlay{
+    width: 120vw;
+  }
+  
+}
 @media (min-width: 769px) {
  .participants-section{
    margin-left: -75px !important;
