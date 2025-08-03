@@ -36,7 +36,7 @@ const Wheel = ({
   const riggedWinners = useRef([
     { name: 'Waseem Malik', ticketNumber: 'F5' },
     { name: 'Alan Mackenzie', ticketNumber: '1197' },
-    { name: 'Marc', ticketNumber: '743' }
+    { name: 'Marc Cleisham', ticketNumber: '743' }
   ]);
 
   const spinCount = useRef(0);
