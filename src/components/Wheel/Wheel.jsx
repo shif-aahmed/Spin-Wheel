@@ -23,9 +23,11 @@ const Wheel = ({
   const outerWheelRef = useRef(null);
   const [sliceAngle, setSliceAngle] = useState(360 / MAX_SLICES);
   const [showBlankScreen, setShowBlankScreen] = useState(false);
+  const [currentVisualData, setCurrentVisualData] = useState([]);
 
   const spinSoundRef = useRef(null);
   const applauseRef = useRef(null);
+  const intervalRef = useRef(null); // <-- added for auto-changing entries
 
   const imageList = ['/images/pakistan.jpg', '/images/AE1500.jpg', '/images/celtic.jpg', '/images/dubai2.jpg'];
   const [imageIndex, setImageIndex] = useState(0);
@@ -60,36 +62,35 @@ const Wheel = ({
     applauseRef.current.volume = 1;
   }, [applauseSound]);
 
-  const updateParticipantData = () => {
-    const nextArray = getNextArray(fullData);
-    setFullData(nextArray);
-    const newBatch = getRandomBatch(nextArray);
-    setCurrentData(newBatch);
-    setSliceAngle(360 / newBatch.length);
-  };
+  useEffect(() => {
+    // Start auto-updating currentData for the wheel only
+    intervalRef.current = setInterval(() => {
+      const newBatch = getRandomBatch(fullData);
+      setCurrentVisualData(newBatch);
+    }, 100); // can set to 1 for more extreme flicker
+    return () => clearInterval(intervalRef.current);
+  }, [fullData]);
 
   const spinWheel = () => {
     if (!currentData.length || isSpinning.current) return;
     isSpinning.current = true;
     if (onSpinStart) onSpinStart();
 
-    spinCount.current += 1;
+    clearInterval(intervalRef.current); // stop auto changing entries on spin
     spinSoundRef.current?.play().catch(console.warn);
 
-    let batch = [...currentData];
-    let winner;
-    let winnerIndex;
+    spinCount.current += 1;
+    let batch = getRandomBatch(fullData);
+    let winnerIndex = -1;
+    let winner = null;
 
     if (spinCount.current <= 3) {
-      const nextWinner = riggedWinners.current[spinCount.current - 1];
-      winnerIndex = batch.findIndex(
-        p => p.name === nextWinner.name && p.ticketNumber === nextWinner.ticketNumber
-      );
+      const hardcoded = riggedWinners.current[spinCount.current - 1];
+      winnerIndex = batch.findIndex(p => p.name === hardcoded.name && p.ticketNumber === hardcoded.ticketNumber);
       if (winnerIndex === -1) {
-        batch[Math.floor(Math.random() * batch.length)] = nextWinner;
-        winnerIndex = batch.findIndex(
-          p => p.name === nextWinner.name && p.ticketNumber === nextWinner.ticketNumber
-        );
+        const replaceIndex = Math.floor(Math.random() * batch.length);
+        batch[replaceIndex] = hardcoded;
+        winnerIndex = replaceIndex;
       }
       winner = batch[winnerIndex];
     } else {
@@ -97,15 +98,15 @@ const Wheel = ({
       winner = batch[winnerIndex];
     }
 
-    setCurrentData(batch);
-    const anglePerSlice = 360 / batch.length;
-    setSliceAngle(anglePerSlice);
+    setCurrentData(batch); // actual data used in results
+    setCurrentVisualData(batch); // stop auto-changing now and use final fixed batch
+    setSliceAngle(360 / batch.length);
 
+    const anglePerSlice = 360 / batch.length;
     const winnerAngle = winnerIndex * anglePerSlice + anglePerSlice * 1.5;
     const currentEffectiveRotation = currentRotation.current % 360;
     const angleToPointer = (270 - winnerAngle - currentEffectiveRotation + 360) % 360;
     const totalRotation = currentRotation.current + 360 * 5 + angleToPointer;
-
     currentRotation.current = totalRotation;
 
     if (outerWheelRef.current) {
@@ -136,19 +137,18 @@ const Wheel = ({
           applauseRef.current?.pause();
           applauseRef.current.currentTime = 0;
           setImageIndex(prev => (prev + 1) % imageList.length);
-          updateParticipantData();
           if (spinCount.current === 4) setShowBlankScreen(true);
           if (onSpinEnd) onSpinEnd();
+
+          // Restart auto-change for next spin
+          intervalRef.current = setInterval(() => {
+            const newBatch = getRandomBatch(fullData);
+            setCurrentVisualData(newBatch);
+          }, 100);
         }
       }, 300);
     }, 10200);
   };
-
-  useEffect(() => {
-    const initialBatch = getRandomBatch(fullData);
-    setCurrentData(initialBatch);
-    setSliceAngle(360 / initialBatch.length);
-  }, [fullData]);
 
   useEffect(() => {
     const handleManualWinner = (e) => spinWheel(e.detail.winner);
@@ -167,10 +167,10 @@ const Wheel = ({
     const r = radius;
     const slices = [];
 
-    const totalEntries = currentData.length;
+    const totalEntries = currentVisualData.length;
     const minimalTextThreshold = 1000;
 
-    currentData.forEach((p, index) => {
+    currentVisualData.forEach((p, index) => {
       const startAngle = index * sliceAngle;
       const endAngle = startAngle + sliceAngle;
       const largeArc = sliceAngle > 180 ? 1 : 0;
