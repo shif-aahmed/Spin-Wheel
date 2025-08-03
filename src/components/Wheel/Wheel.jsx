@@ -37,7 +37,6 @@ const Wheel = ({
   ]);
 
   const spinCount = useRef(0);
-  const passwordVerified = useRef(false);
 
   useEffect(() => {
     const soundMap = {
@@ -70,15 +69,6 @@ const Wheel = ({
   };
 
   const spinWheel = () => {
-    if (!passwordVerified.current) {
-      const input = prompt('Enter password to spin:');
-      if (input !== '1234') {
-        alert('Incorrect password. Try again.');
-        return;
-      }
-      passwordVerified.current = true;
-    }
-
     if (!currentData.length || isSpinning.current) return;
     isSpinning.current = true;
     if (onSpinStart) onSpinStart();
@@ -111,7 +101,6 @@ const Wheel = ({
     const anglePerSlice = 360 / batch.length;
     setSliceAngle(anglePerSlice);
 
-    // ✅ SHIFT WINNER LEFT BY 2 SLICES (to align with pointer)
     const winnerAngle = winnerIndex * anglePerSlice + anglePerSlice * 1.5;
     const currentEffectiveRotation = currentRotation.current % 360;
     const angleToPointer = (270 - winnerAngle - currentEffectiveRotation + 360) % 360;
