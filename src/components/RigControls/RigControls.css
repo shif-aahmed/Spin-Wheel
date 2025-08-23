@@ -1,10 +1,17 @@
 .rig-controls {
-  display: none;
+  /* display: none; */
+  width: 90%;
+  border-radius: 20px !important;
+  margin-top: 20px;
+  padding: 30px;
+  /* display: flex;
+  flex-direction: column; */
 }
+
 
 .rig-controls h3 {
   margin-bottom: 10px;
-  color: var(--primary-color);
+  color: #ff7575;
 }
 
 .rig-inputs {
@@ -32,7 +39,7 @@
 .rig-controls .btn {
   padding: 12px 45px !important;
   border: none;
-  border-radius: 50px;
+  border-radius: 8px;
   font-weight: bold;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -40,9 +47,23 @@
   align-items: center;
   gap: 8px;
   text-align: center;
-}
+  margin :0 auto;
+  background: linear-gradient(130deg, #00ffc3, #008cff);
 
+}
+.rig-controls .btn:hover{
+  background: linear-gradient(130deg, #00c295, #006ac0);
+
+}
 .btn-secondary {
   background-color: var(--secondary-color);
   color: white;
+}
+@media screen and (max-width: 480px) {
+  .rig-controls .btn {
+    width: 100%;
+      padding: 12px 134px !important;
+
+  }
+  
 }

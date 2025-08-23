@@ -1,6 +1,7 @@
 // Admin.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import RigControls from '../components/RigControls/RigControls';
 import './Admin.css';
 
 const Admin = () => {
@@ -217,25 +218,22 @@ const handleUpload = async () => {
                         )}
                       </div>
                     </td>
-        <td>
-  <div className="custom-file-input">
-    <input
-      type="file"
-      disabled={!row.active}
-      onChange={(e) =>
-        handleDataFileChange(row.id, e.target.files[0])
-      }
-    />
-    <div className="file-label">Choose File</div>
-  </div>
-</td>
-<td>{row.fileName || 'File Name'}</td>
-
+                    <td>
+                      <div className="custom-file-input">
+                        <input
+                          type="file"
+                          disabled={!row.active}
+                          onChange={(e) =>
+                            handleDataFileChange(row.id, e.target.files[0])
+                          }
+                        />
+                        <div className="file-label">Choose File</div>
+                      </div>
+                    </td>
+                    <td>{row.fileName || 'File Name'}</td>
                     <td>
                       <button
-                        className={`status-button ${
-                          row.active ? 'active' : 'inactive'
-                        }`}
+                        className={`status-button ${row.active ? 'active' : 'inactive'}`}
                         onClick={() => toggleActive(row.id)}
                       >
                         {row.active ? 'Active' : 'Inactive'}
@@ -262,6 +260,9 @@ const handleUpload = async () => {
               UPLOAD
             </button>
           </div>
+
+          {/* ADD RIG CONTROLS HERE */}
+          <RigControls currentData={[]} /> {/* Pass real participant data if available */}
         </div>
       )}
     </>

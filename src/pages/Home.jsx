@@ -6,7 +6,6 @@ import Results from '../components/Results/Results';
 import WinnersLadder from '../components/WinnersLadder/WinnersLadder';
 import Participants from '../components/Participants/Participants';
 import WinnerPopup from '../components/WinnerPopup/WinnerPopup';
-import RigControls from '../components/RigControls/RigControls';
 import WheelOverlay from '../components/WheelOverlay/WheelOverlay';
 
 import '../style.css';
@@ -140,7 +139,6 @@ const Home = () => {
           <Participants currentData={fullData} />
         </div>
         <WinnerPopup />
-        <RigControls currentData={currentData} />
       </div>
     </>
   );
