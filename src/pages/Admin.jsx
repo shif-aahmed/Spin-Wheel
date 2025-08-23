@@ -91,7 +91,6 @@ const Admin = () => {
       {isAuthenticated && (
         <div className="admin-container">
           <h1 className="admin-heading">Admin Panel</h1>
-
           <div className="nav-button-container">
             <button
               className="spinwheel-button"
@@ -101,14 +100,14 @@ const Admin = () => {
             </button>
           </div>
 
-          <div className="table-header">
-            <h2>Uploaded Files</h2>
-            <button className="add-row-button" onClick={handleAddRow}>
-              +
-            </button>
-          </div>
-
           <div className="admin-table-wrapper">
+            <div className="table-header">
+              <h2>Upload Files</h2>
+              <button className="add-row-button" onClick={handleAddRow}>
+                +
+              </button>
+            </div>
+
             <table className="admin-table">
               <thead>
                 <tr>
@@ -116,7 +115,7 @@ const Admin = () => {
                   <th>Data File</th>
                   <th>File Name</th>
                   <th>Status</th>
-                  <th>Delete</th> {/* New column for delete button */}
+                  <th>Delete</th>
                 </tr>
               </thead>
               <tbody>
@@ -126,30 +125,39 @@ const Admin = () => {
                     className={row.active ? 'active-row' : 'inactive-row'}
                   >
                     <td>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) =>
-                          handleImageChange(row.id, e.target.files[0])
-                        }
-                      />
-                      {row.imagePreview && (
-                        <img
-                          src={row.imagePreview}
-                          alt="preview"
-                          className="preview-image"
+                      <div className="custom-file-input">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          disabled={!row.active}
+                          onChange={(e) =>
+                            handleImageChange(row.id, e.target.files[0])
+                          }
                         />
-                      )}
+                        <div className="file-label">Choose Image</div>
+                        {row.imagePreview && (
+                          <img
+                            src={row.imagePreview}
+                            alt="preview"
+                            className="preview-image"
+                          />
+                        )}
+                      </div>
                     </td>
-                    <td>
-                      <input
-                        type="file"
-                        onChange={(e) =>
-                          handleDataFileChange(row.id, e.target.files[0])
-                        }
-                      />
-                    </td>
-                    <td>{row.fileName}</td>
+        <td>
+  <div className="custom-file-input">
+    <input
+      type="file"
+      disabled={!row.active}
+      onChange={(e) =>
+        handleDataFileChange(row.id, e.target.files[0])
+      }
+    />
+    <div className="file-label">Choose File</div>
+  </div>
+</td>
+<td>{row.fileName || 'File Name'}</td>
+
                     <td>
                       <button
                         className={`status-button ${
@@ -163,10 +171,10 @@ const Admin = () => {
                     <td>
                       <button
                         className="status-button"
-                        style={{ backgroundColor: '#f44336' }}
+                        style={{ backgroundColor: '#ed5d53ff' }}
                         onClick={() => handleDeleteRow(row.id)}
                       >
-                        ×
+                        Delete
                       </button>
                     </td>
                   </tr>
