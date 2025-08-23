@@ -18,7 +18,8 @@
   border-radius: 12px;
   text-align: center;
   color: #fff;
-  width: 360px;
+  width: 90%;
+  max-width: 400px;
 }
 
 .password-form input {
@@ -44,24 +45,49 @@
   background-color: #e68900;
 }
 
+body {
+  margin: 0;
+  width: 100%;
+  padding: 0;
+  min-height: 100vh;
+  display: block; /* fixed from inline-block */
+  box-sizing: border-box;
+  overflow-x: hidden; /* prevent unwanted horizontal scroll */
+}
+
 /* Admin Container */
 .admin-container {
-  padding: 30px;
-  max-width: 1100px;
-  margin: 0 auto;
+  min-height: 100vh;
+  width: 100%;
   color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  box-sizing: border-box;
+  text-align: center;
+  margin: 0 auto;
 }
 
 .admin-heading {
-  text-align: center;
+  color: black;
   margin-bottom: 20px;
-  font-size: 2.5rem;
-  color: #ff9800;
+  font-size: 2rem;
+}
+
+/* Spin Wheel Button Container */
+.nav-button-container {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+  background-color: black;
+  padding: 10px;
+  margin-bottom: 20px;
+  box-sizing: border-box;
 }
 
 .spinwheel-button {
-  display: block;
-  margin: 0 auto 30px;
   padding: 12px 25px;
   border: none;
   border-radius: 8px;
@@ -81,7 +107,9 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  width: 100%;
   margin-bottom: 10px;
+  flex-wrap: wrap;
 }
 
 .add-row-button {
@@ -100,10 +128,16 @@
 }
 
 /* Admin Table */
+.admin-table-wrapper {
+  width: 100%;
+  overflow-x: auto; /* ✅ scroll only table */
+  margin-bottom: 20px;
+}
+
 .admin-table {
   width: 100%;
+  min-width: 800px; /* ✅ ensures scroll on small screens */
   border-collapse: collapse;
-  margin-bottom: 20px;
 }
 
 .admin-table th,
@@ -161,7 +195,9 @@
 .upload-button-container {
   display: flex;
   justify-content: flex-end;
+  width: 100%;
   margin-top: 20px;
+  box-sizing: border-box;
 }
 
 .upload-button {
@@ -177,4 +213,55 @@
 
 .upload-button:hover {
   background-color: #0097a7;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .admin-table th,
+  .admin-table td {
+    padding: 10px;
+  }
+
+  .spinwheel-button,
+  .upload-button,
+  .add-row-button {
+    padding: 10px 18px;
+    font-size: 0.9rem;
+  }
+
+  .preview-image {
+    width: 60px;
+    height: 60px;
+  }
+}
+
+@media (max-width: 768px) {
+  .table-header {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .nav-button-container {
+    justify-content: center;
+  }
+
+  .admin-heading {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-table {
+    font-size: 0.8rem;
+  }
+  .preview-image {
+    width: 50px;
+    height: 50px;
+  }
+
+  .spinwheel-button,
+  .upload-button,
+  .add-row-button {
+    width: 100%;
+  }
 }

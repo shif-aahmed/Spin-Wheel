@@ -62,7 +62,6 @@ const Admin = () => {
     );
   };
 
-  // Upload button handler
   const handleUpload = () => {
     const activeRows = rows.filter(row => row.active && row.dataFile);
     navigate('/home', { state: { uploadedRows: activeRows } });
@@ -88,12 +87,15 @@ const Admin = () => {
       {isAuthenticated && (
         <div className="admin-container">
           <h1 className="admin-heading">Admin Panel</h1>
-          <button
-            className="spinwheel-button"
-            onClick={() => navigate('/home')}
-          >
-            Go to Spin Wheel
-          </button>
+
+          <div className="nav-button-container">
+            <button
+              className="spinwheel-button"
+              onClick={() => navigate('/home')}
+            >
+              Go to Spin Wheel
+            </button>
+          </div>
 
           <div className="table-header">
             <h2>Uploaded Files</h2>
@@ -101,7 +103,7 @@ const Admin = () => {
               +
             </button>
           </div>
-
+        <div className="admin-table-wrapper">
           <table className="admin-table">
             <thead>
               <tr>
@@ -156,7 +158,7 @@ const Admin = () => {
               ))}
             </tbody>
           </table>
-
+              </div>
           <div className="upload-button-container">
             <button className="upload-button" onClick={handleUpload}>
               UPLOAD
