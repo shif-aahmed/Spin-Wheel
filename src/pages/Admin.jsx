@@ -149,12 +149,15 @@ const handleUpload = async () => {
       {isAuthenticated && (
         <div className="admin-container">
           <h1 className="admin-heading">Admin Panel</h1>
-          <button
-            className="spinwheel-button"
-            onClick={() => navigate('/home')}
-          >
-            Go to Spin Wheel
-          </button>
+
+          <div className="nav-button-container">
+            <button
+              className="spinwheel-button"
+              onClick={() => navigate('/home')}
+            >
+              Go to Spin Wheel
+            </button>
+          </div>
 
           <div className="table-header">
             <h2>Uploaded Files</h2>
@@ -163,60 +166,72 @@ const handleUpload = async () => {
             </button>
           </div>
 
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>Image</th>
-                <th>Data File</th>
-                <th>File Name</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((row) => (
-                <tr
-                  key={row.id}
-                  className={row.active ? 'active-row' : 'inactive-row'}
-                >
-                  <td>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) =>
-                        handleImageChange(row.id, e.target.files[0])
-                      }
-                    />
-                    {row.imagePreview && (
-                      <img
-                        src={row.imagePreview}
-                        alt="preview"
-                        className="preview-image"
-                      />
-                    )}
-                  </td>
-                  <td>
-                    <input
-                      type="file"
-                      onChange={(e) =>
-                        handleDataFileChange(row.id, e.target.files[0])
-                      }
-                    />
-                  </td>
-                  <td>{row.fileName}</td>
-                  <td>
-                    <button
-                      className={`status-button ${
-                        row.active ? 'active' : 'inactive'
-                      }`}
-                      onClick={() => toggleActive(row.id)}
-                    >
-                      {row.active ? 'Active' : 'Inactive'}
-                    </button>
-                  </td>
+          <div className="admin-table-wrapper">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Image</th>
+                  <th>Data File</th>
+                  <th>File Name</th>
+                  <th>Status</th>
+                  <th>Delete</th> {/* New column for delete button */}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {rows.map((row) => (
+                  <tr
+                    key={row.id}
+                    className={row.active ? 'active-row' : 'inactive-row'}
+                  >
+                    <td>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) =>
+                          handleImageChange(row.id, e.target.files[0])
+                        }
+                      />
+                      {row.imagePreview && (
+                        <img
+                          src={row.imagePreview}
+                          alt="preview"
+                          className="preview-image"
+                        />
+                      )}
+                    </td>
+                    <td>
+                      <input
+                        type="file"
+                        onChange={(e) =>
+                          handleDataFileChange(row.id, e.target.files[0])
+                        }
+                      />
+                    </td>
+                    <td>{row.fileName}</td>
+                    <td>
+                      <button
+                        className={`status-button ${
+                          row.active ? 'active' : 'inactive'
+                        }`}
+                        onClick={() => toggleActive(row.id)}
+                      >
+                        {row.active ? 'Active' : 'Inactive'}
+                      </button>
+                    </td>
+                    <td>
+                      <button
+                        className="status-button"
+                        style={{ backgroundColor: '#f44336' }}
+                        onClick={() => handleDeleteRow(row.id)}
+                      >
+                        ×
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
           <div className="upload-button-container">
             <button className="upload-button" onClick={handleUpload}>
