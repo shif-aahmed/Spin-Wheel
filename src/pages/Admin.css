@@ -1,0 +1,158 @@
+/* Password Modal */
+.password-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.password-form {
+  background: #1a1a1a;
+  padding: 40px;
+  border-radius: 12px;
+  text-align: center;
+  color: #fff;
+  width: 360px;
+}
+
+.password-form input {
+  width: 100%;
+  padding: 12px;
+  margin: 15px 0;
+  border-radius: 6px;
+  border: none;
+}
+
+.password-form button {
+  padding: 12px 25px;
+  border: none;
+  border-radius: 6px;
+  background-color: #ff9800;
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.password-form button:hover {
+  background-color: #e68900;
+}
+
+/* Admin Container */
+.admin-container {
+  padding: 30px;
+  max-width: 1100px;
+  margin: 0 auto;
+  color: #fff;
+}
+
+.admin-heading {
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 2.5rem;
+  color: #ff9800;
+}
+
+.spinwheel-button {
+  display: block;
+  margin: 0 auto 30px;
+  padding: 12px 25px;
+  border: none;
+  border-radius: 8px;
+  background-color: #00bcd4;
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.spinwheel-button:hover {
+  background-color: #0097a7;
+}
+
+/* Table Header with Add Row */
+.table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.add-row-button {
+  padding: 6px 12px;
+  font-size: 1.5rem;
+  border: none;
+  border-radius: 6px;
+  background-color: #4caf50;
+  color: #fff;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.add-row-button:hover {
+  background-color: #3e8e41;
+}
+
+/* Admin Table */
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 40px;
+}
+
+.admin-table th,
+.admin-table td {
+  padding: 12px;
+  text-align: center;
+  border: 1px solid #444;
+}
+
+.admin-table th {
+  background-color: #222;
+  color: #ff9800;
+}
+
+.preview-image {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  margin-top: 5px;
+  border-radius: 6px;
+}
+
+/* Active/Inactive Row Styling */
+.active-row {
+  background-color: #1e1e1e;
+}
+
+.inactive-row {
+  background-color: #2c2c2c;
+  opacity: 0.6;
+}
+
+.status-button {
+  padding: 8px 15px;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  color: #fff;
+}
+
+.status-button.active {
+  background-color: #4caf50;
+}
+
+.status-button.inactive {
+  background-color: #f44336;
+}
+
+.status-button:hover {
+  opacity: 0.8;
+}
