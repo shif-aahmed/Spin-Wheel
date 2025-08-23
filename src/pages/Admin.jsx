@@ -74,13 +74,28 @@ const Admin = () => {
     );
   };
 
-  const toggleActive = (id) => {
-    setRows((prev) =>
-      prev.map((row) =>
-        row.id === id ? { ...row, active: !row.active } : row
-      )
-    );
-  };
+ const toggleActive = (id) => {
+  setRows((prev) =>
+    prev.map((row) =>
+      row.id === id ? { ...row, active: !row.active } : row
+    )
+  );
+};
+
+const handleDeleteRow = (id) => {
+  setRows((prev) => prev.filter((row) => row.id !== id));
+  setFiles((prev) => {
+    const newFiles = { ...prev };
+    delete newFiles[id];
+    return newFiles;
+  });
+  setImages((prev) => {
+    const newImages = { ...prev };
+    delete newImages[id];
+    return newImages;
+  });
+};
+
 
   // ✅ Upload button handler with backend integration
  // ✅ Upload button handler with backend integration
@@ -174,7 +189,7 @@ const handleUpload = async () => {
                   <th>Data File</th>
                   <th>File Name</th>
                   <th>Status</th>
-                  <th>Delete</th> {/* New column for delete button */}
+                  <th>Delete</th> 
                 </tr>
               </thead>
               <tbody>
@@ -217,6 +232,7 @@ const handleUpload = async () => {
                       >
                         {row.active ? 'Active' : 'Inactive'}
                       </button>
+                      
                     </td>
                     <td>
                       <button

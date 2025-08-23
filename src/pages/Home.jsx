@@ -10,19 +10,12 @@ import RigControls from '../components/RigControls/RigControls';
 import WheelOverlay from '../components/WheelOverlay/WheelOverlay';
 
 import '../style.css';
-import { pakistan, dubai, celtic, AE1500 } from '../people';
 
 const MAX_SLICES = 200;
 
 const Home = () => {
-  const datasetsMap = {
-    1: pakistan,
-    2: AE1500,
-    3: celtic,
-    4: dubai
-  };
-
   const [spinCount, setSpinCount] = useState(0);
+  const [filesData, setFilesData] = useState([]); // all files from backend
   const [fullData, setFullData] = useState([]);
   const [currentData, setCurrentData] = useState([]);
   const [customColors, setCustomColors] = useState([]);
@@ -30,18 +23,43 @@ const Home = () => {
   const [applauseSound, setApplauseSound] = useState('applause1');
 
   const isSpinningRef = useRef(false);
-  const intervalID = useRef(null);
 
   const riggedWinnersList = [
     { name: 'Waseem Malik', ticketNumber: 'F5' },
     { name: 'Alan Mackenzie', ticketNumber: '1197' },
-    { name: 'Marc', ticketNumber: '743' }
+    { name: 'Marc Cleisham', ticketNumber: '743' }
   ];
+
+  // fetch files & participants from backend
+  useEffect(() => {
+  const fetchFiles = async () => {
+    try {
+      const res = await fetch("http://127.0.0.1:8000/api/spins/list/");
+      const data = await res.json();
+
+      const transformedFiles = (data || []).map(file => ({
+        ...file,
+        participants: (file.json_content || []).map(p => ({
+          name: `${p["First Name"]} ${p["Last Name"]}`,
+          ticketNumber: p["Ticket Number"]
+        }))
+      }));
+
+      setFilesData(transformedFiles);
+    } catch (err) {
+      console.error("Error fetching files:", err);
+    }
+  };
+
+  fetchFiles();
+}, []);
 
   const getRandomBatch = (fullList, winner = null) => {
     const pool = [...fullList];
     if (winner) {
-      const exists = pool.some(p => p.name === winner.name && p.ticketNumber === winner.ticketNumber);
+      const exists = pool.some(
+        p => p.name === winner.name && p.ticketNumber === winner.ticketNumber
+      );
       if (!exists) {
         pool[Math.floor(Math.random() * pool.length)] = winner;
       }
@@ -51,31 +69,33 @@ const Home = () => {
   };
 
   const prepareDataForSpin = () => {
+    if (!filesData.length) return; // wait until backend loads
+
     const nextSpin = spinCount + 1;
 
-    let dataset = datasetsMap[4]; // default = dubai
+    // pick dataset based on spin count
+    let dataset = filesData[3]?.participants || []; // default = 4th file
     let winner = null;
 
-    if (nextSpin === 1) {
-      dataset = datasetsMap[1];
+    if (nextSpin === 1 && filesData[0]) {
+      dataset = filesData[0].participants;
       winner = riggedWinnersList[0];
-    } else if (nextSpin === 2) {
-      dataset = datasetsMap[2];
+    } else if (nextSpin === 2 && filesData[1]) {
+      dataset = filesData[1].participants;
       winner = riggedWinnersList[1];
-    } else if (nextSpin === 3) {
-      dataset = datasetsMap[3];
+    } else if (nextSpin === 3 && filesData[2]) {
+      dataset = filesData[2].participants;
       winner = riggedWinnersList[2];
     }
 
-    const transformed = dataset.map(p => ({ name: p.name, ticketNumber: p.ticketNumber }));
-    setFullData(transformed);
-    const batch = getRandomBatch(transformed, winner);
+    setFullData(dataset);
+    const batch = getRandomBatch(dataset, winner);
     setCurrentData(batch);
   };
 
   useEffect(() => {
     prepareDataForSpin();
-  }, [spinCount]);
+  }, [spinCount, filesData]);
 
   const handleSpinStart = () => {
     isSpinningRef.current = true;
