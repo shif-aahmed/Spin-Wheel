@@ -103,7 +103,7 @@
 .admin-table {
   width: 100%;
   border-collapse: collapse;
-  margin-bottom: 40px;
+  margin-bottom: 20px;
 }
 
 .admin-table th,
@@ -155,4 +155,26 @@
 
 .status-button:hover {
   opacity: 0.8;
+}
+
+/* Upload Button Container */
+.upload-button-container {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+.upload-button {
+  padding: 12px 25px;
+  border: none;
+  border-radius: 8px;
+  background-color: #00bcd4;
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.upload-button:hover {
+  background-color: #0097a7;
 }

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Admin.css';
 
@@ -7,6 +7,11 @@ const Admin = () => {
   const [passwordInput, setPasswordInput] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [rows, setRows] = useState([]);
+
+  // Initialize with one empty row
+  useEffect(() => {
+    handleAddRow();
+  }, []);
 
   const handlePasswordSubmit = (e) => {
     e.preventDefault();
@@ -22,6 +27,7 @@ const Admin = () => {
       id: Date.now() + Math.random(),
       image: null,
       dataFile: null,
+      fileName: '',
       active: true,
       imagePreview: null,
     };
@@ -40,7 +46,11 @@ const Admin = () => {
 
   const handleDataFileChange = (id, file) => {
     setRows((prev) =>
-      prev.map((row) => (row.id === id ? { ...row, dataFile: file } : row))
+      prev.map((row) =>
+        row.id === id
+          ? { ...row, dataFile: file, fileName: file.name }
+          : row
+      )
     );
   };
 
@@ -50,6 +60,12 @@ const Admin = () => {
         row.id === id ? { ...row, active: !row.active } : row
       )
     );
+  };
+
+  // Upload button handler
+  const handleUpload = () => {
+    const activeRows = rows.filter(row => row.active && row.dataFile);
+    navigate('/home', { state: { uploadedRows: activeRows } });
   };
 
   return (
@@ -91,12 +107,16 @@ const Admin = () => {
               <tr>
                 <th>Image</th>
                 <th>Data File</th>
+                <th>File Name</th>
                 <th>Status</th>
               </tr>
             </thead>
             <tbody>
               {rows.map((row) => (
-                <tr key={row.id} className={row.active ? 'active-row' : 'inactive-row'}>
+                <tr
+                  key={row.id}
+                  className={row.active ? 'active-row' : 'inactive-row'}
+                >
                   <td>
                     <input
                       type="file"
@@ -121,6 +141,7 @@ const Admin = () => {
                       }
                     />
                   </td>
+                  <td>{row.fileName}</td>
                   <td>
                     <button
                       className={`status-button ${
@@ -135,6 +156,12 @@ const Admin = () => {
               ))}
             </tbody>
           </table>
+
+          <div className="upload-button-container">
+            <button className="upload-button" onClick={handleUpload}>
+              UPLOAD
+            </button>
+          </div>
         </div>
       )}
     </>
