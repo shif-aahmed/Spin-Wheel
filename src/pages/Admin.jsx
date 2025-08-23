@@ -1,3 +1,4 @@
+// Admin.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Admin.css';
@@ -7,18 +8,37 @@ const Admin = () => {
   const [passwordInput, setPasswordInput] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [rows, setRows] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   // Initialize with one empty row
   useEffect(() => {
     handleAddRow();
   }, []);
 
-  const handlePasswordSubmit = (e) => {
+  const handlePasswordSubmit = async (e) => {
     e.preventDefault();
-    if (passwordInput === '1234') {
-      setIsAuthenticated(true);
-    } else {
-      alert('Incorrect Password!');
+    setLoading(true);
+    try {
+      const response = await fetch('http://127.0.0.1:8000/api/spins/check-password/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ password: passwordInput }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.valid) {
+        setIsAuthenticated(true);
+      } else {
+        alert('Incorrect Password!');
+      }
+    } catch (error) {
+      console.error('Error checking password:', error);
+      alert('Something went wrong. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -62,11 +82,49 @@ const Admin = () => {
     );
   };
 
-  // Upload button handler
-  const handleUpload = () => {
-    const activeRows = rows.filter(row => row.active && row.dataFile);
-    navigate('/home', { state: { uploadedRows: activeRows } });
-  };
+  // ✅ Upload button handler with backend integration
+ // ✅ Upload button handler with backend integration
+const handleUpload = async () => {
+  try {
+    for (const row of rows) {
+      if (!row.dataFile) {
+        alert('Please select a data file for all rows.');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('filename', row.fileName || 'Untitled');
+
+      if (row.image) {
+        formData.append('picture', row.image);
+      }
+      // if no image, backend will use default
+
+      formData.append('excel_file', row.dataFile);
+      formData.append('active', row.active);
+      formData.append('password', passwordInput);
+
+      const response = await fetch('http://127.0.0.1:8000/api/spins/upload/', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        alert(`❌ Upload failed: ${result.error}`);
+        return;
+      }
+    }
+
+    alert('✅ All files uploaded successfully!');
+    navigate('/home');
+  } catch (error) {
+    console.error('Error uploading files:', error);
+    alert('Something went wrong while uploading. Try again.');
+  }
+};
+
 
   return (
     <>
@@ -79,8 +137,11 @@ const Admin = () => {
               value={passwordInput}
               onChange={(e) => setPasswordInput(e.target.value)}
               placeholder="Password"
+              disabled={loading}
             />
-            <button type="submit">Enter</button>
+            <button type="submit" disabled={loading}>
+              {loading ? 'Checking...' : 'Enter'}
+            </button>
           </form>
         </div>
       )}
