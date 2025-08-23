@@ -38,8 +38,7 @@ const RigControls = ({ currentData }) => {
       <h3>Rig Wheel Stops</h3>
       <div className="rig-inputs">
         <div className="rig-input">
-          <label htmlFor="rigOuter">Outer Wheel:</label>
-          <input type="ticketNumber" id="rigOuter" min="1" max="80" placeholder="1-80" />
+          <input type="ticketNumber" id="rigOuter" min="1" max="80" placeholder="Enter Ticket Number" />
         </div>
       </div>
       <button className="btn btn-secondary">Set Rigged Stops</button>

@@ -1,6 +1,7 @@
 // Admin.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import RigControls from '../components/RigControls/RigControls';
 import './Admin.css';
 
 const Admin = () => {
@@ -252,9 +253,7 @@ const Admin = () => {
                     <td>{row.fileName || 'File Name'}</td>
                     <td>
                       <button
-                        className={`status-button ${
-                          row.active ? 'active' : 'inactive'
-                        }`}
+                        className={`status-button ${row.active ? 'active' : 'inactive'}`}
                         onClick={() => toggleActive(row.id)}
                       >
                         {row.active ? 'Active' : 'Inactive'}
@@ -280,6 +279,9 @@ const Admin = () => {
               UPLOAD
             </button>
           </div>
+
+          {/* ADD RIG CONTROLS HERE */}
+          <RigControls currentData={[]} /> {/* Pass real participant data if available */}
         </div>
       )}
     </>
