@@ -1,6 +1,7 @@
 /* Password Modal */
 .password-modal {
   position: fixed;
+  height: 100vh;
   top: 0;
   left: 0;
   width: 100%;
@@ -21,7 +22,10 @@
   width: 90%;
   max-width: 400px;
 }
-
+.password-form h2 {
+  background-color: #1a1a1a;
+  color: #fff;
+}
 .password-form input {
   width: 100%;
   padding: 12px;
@@ -34,7 +38,7 @@
   padding: 12px 25px;
   border: none;
   border-radius: 6px;
-  background-color: #ff9800;
+  background-color: #4caf50;
   color: #fff;
   font-weight: bold;
   cursor: pointer;
@@ -58,8 +62,9 @@ body {
 /* Admin Container */
 .admin-container {
   min-height: 100vh;
-  width: 100%;
+  width: 100vw;
   color: #fff;
+  background-color: #f0f0f0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -71,27 +76,28 @@ body {
 }
 
 .admin-heading {
-  color: black;
+  color: #ff7575;
   margin-bottom: 20px;
-  font-size: 2rem;
+  background-color: #f0f0f0;
 }
 
 /* Spin Wheel Button Container */
 .nav-button-container {
   display: flex;
   justify-content: flex-end;
-  width: 100%;
-  background-color: black;
-  padding: 10px;
+  width: 100vw;
+  background-color: transparent;
+  padding: 10px 56px 10px 10px;
   margin-bottom: 20px;
   box-sizing: border-box;
+  
 }
 
 .spinwheel-button {
   padding: 12px 25px;
   border: none;
   border-radius: 8px;
-  background-color: #00bcd4;
+  background: linear-gradient(130deg, #00ffc3, #008cff);
   color: #fff;
   font-weight: bold;
   cursor: pointer;
@@ -99,39 +105,46 @@ body {
 }
 
 .spinwheel-button:hover {
-  background-color: #0097a7;
+  background: linear-gradient(130deg, #00c295, #006ac0);
 }
 
 /* Table Header with Add Row */
 .table-header {
   display: flex;
-  justify-content: space-between;
+  /* justify-content: space-between; */
+  gap:10px;
   align-items: center;
   width: 100%;
   margin-bottom: 10px;
   flex-wrap: wrap;
 }
-
+.table-header h2{
+  color:#ff7575;
+}
 .add-row-button {
   padding: 6px 12px;
   font-size: 1.5rem;
   border: none;
   border-radius: 6px;
-  background-color: #4caf50;
+  background-color: #23d4ab;
   color: #fff;
   cursor: pointer;
   transition: 0.3s;
 }
 
 .add-row-button:hover {
-  background-color: #3e8e41;
+  background-color: #1da787;
 }
 
 /* Admin Table */
 .admin-table-wrapper {
-  width: 100%;
+  width: 90%;
   overflow-x: auto; /* ✅ scroll only table */
   margin-bottom: 20px;
+  background-color: white;
+  border-radius: 20px;
+  padding: 30px;
+
 }
 
 .admin-table {
@@ -144,12 +157,13 @@ body {
 .admin-table td {
   padding: 12px;
   text-align: center;
-  border: 1px solid #444;
+  border: none;
 }
 
 .admin-table th {
-  background-color: #222;
+  background-color: white;
   color: #ff9800;
+  display: none;
 }
 
 .preview-image {
@@ -180,7 +194,7 @@ body {
 }
 
 .status-button.active {
-  background-color: #4caf50;
+  background-color: #23d4ab;
 }
 
 .status-button.inactive {
@@ -194,25 +208,65 @@ body {
 /* Upload Button Container */
 .upload-button-container {
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
   width: 100%;
   margin-top: 20px;
   box-sizing: border-box;
+  background-color: #f0f0f0;
 }
 
 .upload-button {
-  padding: 12px 25px;
+  padding: 12px 35px;
   border: none;
   border-radius: 8px;
-  background-color: #00bcd4;
-  color: #fff;
+  background: linear-gradient(130deg, #00ffc3, #008cff);
+  color: #f0f0f0;
   font-weight: bold;
   cursor: pointer;
   transition: 0.3s;
 }
 
 .upload-button:hover {
-  background-color: #0097a7;
+  background: linear-gradient(130deg, #00c295, #006ac0);
+}
+/* Custom File Input */
+.custom-file-input {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+  max-width: 200px;
+}
+
+.custom-file-input input[type="file"] {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.custom-file-input .file-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 15px;
+  background-color: #f0f0f0;
+  color: #7b7b7b;
+  font-weight: bold;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.3s;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+
+.custom-file-input .file-name {
+  margin-top: 5px;
+  font-size: 0.85rem;
+  color: #fff;
+  text-align: center;
+  word-break: break-all;
 }
 
 /* Responsive adjustments */
@@ -220,6 +274,7 @@ body {
   .admin-table th,
   .admin-table td {
     padding: 10px;
+    border: none;
   }
 
   .spinwheel-button,
@@ -240,13 +295,19 @@ body {
     flex-direction: column;
     gap: 10px;
   }
-
+  .admin-table th,
+  .admin-table td {
+    border: none;
+  }
   .nav-button-container {
     justify-content: center;
   }
 
   .admin-heading {
     font-size: 1.5rem;
+  }
+  .nav-button-container{
+    padding-right: 10px;
   }
 }
 
@@ -258,7 +319,10 @@ body {
     width: 50px;
     height: 50px;
   }
-
+  .admin-table th,
+  .admin-table td {
+    border: none;
+  }
   .spinwheel-button,
   .upload-button,
   .add-row-button {
