@@ -10,10 +10,32 @@ const Admin = () => {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Initialize with one empty row
+  // ✅ Fetch files when authenticated
   useEffect(() => {
-    handleAddRow();
-  }, []);
+    if (isAuthenticated) {
+      fetchFiles();
+    }
+  }, [isAuthenticated]);
+
+  // ✅ Fetch all files (active + inactive) for Admin panel
+  const fetchFiles = async () => {
+    try {
+      const response = await fetch("http://127.0.0.1:8000/api/spins/admin-list/");
+      const data = await response.json();
+      setRows(
+        data.map((file) => ({
+          id: file.id,
+          image: null,
+          imagePreview: file.picture || null,
+          dataFile: null,
+          fileName: file.filename,
+          active: file.active,
+        }))
+      );
+    } catch (err) {
+      console.error("Error fetching files:", err);
+    }
+  };
 
   const handlePasswordSubmit = async (e) => {
     e.preventDefault();
@@ -21,19 +43,12 @@ const Admin = () => {
     try {
       const response = await fetch('http://127.0.0.1:8000/api/spins/check-password/', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password: passwordInput }),
       });
-
       const data = await response.json();
-
-      if (response.ok && data.valid) {
-        setIsAuthenticated(true);
-      } else {
-        alert('Incorrect Password!');
-      }
+      if (response.ok && data.valid) setIsAuthenticated(true);
+      else alert('Incorrect Password!');
     } catch (error) {
       console.error('Error checking password:', error);
       alert('Something went wrong. Please try again.');
@@ -74,72 +89,76 @@ const Admin = () => {
     );
   };
 
- const toggleActive = (id) => {
-  setRows((prev) =>
-    prev.map((row) =>
-      row.id === id ? { ...row, active: !row.active } : row
-    )
-  );
-};
-
-const handleDeleteRow = (id) => {
-  setRows((prev) => prev.filter((row) => row.id !== id));
-  setFiles((prev) => {
-    const newFiles = { ...prev };
-    delete newFiles[id];
-    return newFiles;
-  });
-  setImages((prev) => {
-    const newImages = { ...prev };
-    delete newImages[id];
-    return newImages;
-  });
-};
-
-
-  // ✅ Upload button handler with backend integration
- // ✅ Upload button handler with backend integration
-const handleUpload = async () => {
-  try {
-    for (const row of rows) {
-      if (!row.dataFile) {
-        alert('Please select a data file for all rows.');
-        return;
-      }
-
-      const formData = new FormData();
-      formData.append('filename', row.fileName || 'Untitled');
-
-      if (row.image) {
-        formData.append('picture', row.image);
-      }
-      // if no image, backend will use default
-
-      formData.append('excel_file', row.dataFile);
-      formData.append('active', row.active);
-      formData.append('password', passwordInput);
-
-      const response = await fetch('http://127.0.0.1:8000/api/spins/upload/', {
-        method: 'POST',
-        body: formData,
+  // ✅ Toggle active/inactive on backend + UI
+  const toggleActive = async (id) => {
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/api/spins/toggle-active/${id}/`, {
+        method: 'PATCH',
       });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        alert(`❌ Upload failed: ${result.error}`);
-        return;
+      const data = await response.json();
+      if (response.ok) {
+        setRows((prev) =>
+          prev.map((row) =>
+            row.id === id ? { ...row, active: data.active } : row
+          )
+        );
+      } else {
+        alert("❌ Failed to toggle active status: " + data.error);
       }
+    } catch (error) {
+      console.error("Error toggling active:", error);
+      alert("Something went wrong while toggling active status.");
     }
+  };
 
-    alert('✅ All files uploaded successfully!');
-    navigate('/home');
-  } catch (error) {
-    console.error('Error uploading files:', error);
-    alert('Something went wrong while uploading. Try again.');
-  }
-};
+  // ✅ Delete row from backend + UI
+  const handleDeleteRow = async (id) => {
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/api/spins/delete/${id}/`, {
+        method: "DELETE",
+      });
+      if (response.ok) {
+        setRows((prev) => prev.filter((row) => row.id !== id));
+      } else {
+        const result = await response.json();
+        alert("❌ Delete failed: " + result.error);
+      }
+    } catch (error) {
+      console.error("Error deleting file:", error);
+      alert("Something went wrong while deleting.");
+    }
+  };
 
+  // ✅ Upload new files only
+  const handleUpload = async () => {
+    try {
+      for (const row of rows) {
+        if (!row.dataFile) continue; // skip already uploaded rows
+
+        const formData = new FormData();
+        formData.append('filename', row.fileName || 'Untitled');
+        if (row.image) formData.append('picture', row.image);
+        formData.append('excel_file', row.dataFile);
+        formData.append('active', row.active);
+        formData.append('password', passwordInput);
+
+        const response = await fetch('http://127.0.0.1:8000/api/spins/upload/', {
+          method: 'POST',
+          body: formData,
+        });
+        const result = await response.json();
+        if (!response.ok) {
+          alert(`❌ Upload failed: ${result.error}`);
+          return;
+        }
+      }
+      alert('✅ All files uploaded successfully!');
+      fetchFiles(); // refresh table after upload
+    } catch (error) {
+      console.error('Error uploading files:', error);
+      alert('Something went wrong while uploading. Try again.');
+    }
+  };
 
   return (
     <>
@@ -198,39 +217,39 @@ const handleUpload = async () => {
                     className={row.active ? 'active-row' : 'inactive-row'}
                   >
                     <td>
+                      {row.imagePreview ? (
+                        <img
+                          src={row.imagePreview}
+                          alt="preview"
+                          className="preview-image"
+                        />
+                      ) : (
+                        <div className="custom-file-input">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            disabled={!row.active}
+                            onChange={(e) =>
+                              handleImageChange(row.id, e.target.files[0])
+                            }
+                          />
+                          <div className="file-label">Choose Image</div>
+                        </div>
+                      )}
+                    </td>
+                    <td>
                       <div className="custom-file-input">
                         <input
                           type="file"
-                          accept="image/*"
                           disabled={!row.active}
                           onChange={(e) =>
-                            handleImageChange(row.id, e.target.files[0])
+                            handleDataFileChange(row.id, e.target.files[0])
                           }
                         />
-                        <div className="file-label">Choose Image</div>
-                        {row.imagePreview && (
-                          <img
-                            src={row.imagePreview}
-                            alt="preview"
-                            className="preview-image"
-                          />
-                        )}
+                        <div className="file-label">Choose File</div>
                       </div>
                     </td>
-        <td>
-  <div className="custom-file-input">
-    <input
-      type="file"
-      disabled={!row.active}
-      onChange={(e) =>
-        handleDataFileChange(row.id, e.target.files[0])
-      }
-    />
-    <div className="file-label">Choose File</div>
-  </div>
-</td>
-<td>{row.fileName || 'File Name'}</td>
-
+                    <td>{row.fileName || 'File Name'}</td>
                     <td>
                       <button
                         className={`status-button ${
@@ -240,7 +259,6 @@ const handleUpload = async () => {
                       >
                         {row.active ? 'Active' : 'Inactive'}
                       </button>
-                      
                     </td>
                     <td>
                       <button
