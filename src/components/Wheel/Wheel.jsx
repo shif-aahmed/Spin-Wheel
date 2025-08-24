@@ -8,30 +8,25 @@ const MAX_SLICES = 200;
 const Wheel = ({
   setCurrentData,
   fullData,
-  setFullData,
   currentData,
-  getNextArray,
   getRandomBatch,
   customColors = [],
   selectedSound = 'spin1',
   applauseSound = 'applause1',
   onSpinStart,
-  onSpinEnd
+  onSpinEnd,
+  currentFilePicture // ✅ new prop
 }) => {
   const isSpinning = useRef(false);
   const currentRotation = useRef(0);
   const outerWheelRef = useRef(null);
   const [sliceAngle, setSliceAngle] = useState(360 / MAX_SLICES);
-  const [showBlankScreen, setShowBlankScreen] = useState(false);
   const [currentVisualData, setCurrentVisualData] = useState([]);
-  const [isPopupVisible, setIsPopupVisible] = useState(false); // ✅ track popup
+  const [isPopupVisible, setIsPopupVisible] = useState(false);
 
   const spinSoundRef = useRef(null);
   const applauseRef = useRef(null);
   const intervalRef = useRef(null);
-
-  const imageList = ['/images/pakistan.jpg', '/images/AE1500.jpg', '/images/celtic.jpg', '/images/dubai2.jpg'];
-  const [imageIndex, setImageIndex] = useState(0);
 
   const riggedWinners = useRef([
     { name: 'Waseem Malik', ticketNumber: 'F5' },
@@ -63,14 +58,23 @@ const Wheel = ({
     applauseRef.current.volume = 1;
   }, [applauseSound]);
 
-  useEffect(() => {
-    intervalRef.current = setInterval(() => {
-      const newBatch = getRandomBatch(fullData);
-      setCurrentVisualData(newBatch);
-      setSliceAngle(360 / newBatch.length);
-    }, 100);
-    return () => clearInterval(intervalRef.current);
-  }, [fullData]);
+ useEffect(() => {
+  if (!fullData || fullData.length === 0) {
+    // ✅ No data → clear the wheel
+    setCurrentVisualData([]);
+    setSliceAngle(360 / MAX_SLICES);
+    return;
+  }
+
+  intervalRef.current = setInterval(() => {
+    const newBatch = getRandomBatch(fullData);
+    setCurrentVisualData(newBatch);
+    setSliceAngle(360 / newBatch.length);
+  }, 100);
+
+  return () => clearInterval(intervalRef.current);
+}, [fullData]);
+
 
   const spinWheel = () => {
     if (!currentData.length || isSpinning.current) return;
@@ -81,11 +85,13 @@ const Wheel = ({
     spinSoundRef.current?.play().catch(console.warn);
 
     spinCount.current += 1;
-    let batch = getRandomBatch(fullData);
+    let batch = [];
     let winnerIndex = -1;
     let winner = null;
 
     if (spinCount.current <= 3) {
+      // First 3 spins = hardcoded winners
+      batch = getRandomBatch(fullData);
       const hardcoded = riggedWinners.current[spinCount.current - 1];
       winnerIndex = batch.findIndex(p => p.name === hardcoded.name && p.ticketNumber === hardcoded.ticketNumber);
       if (winnerIndex === -1) {
@@ -95,6 +101,13 @@ const Wheel = ({
       }
       winner = batch[winnerIndex];
     } else {
+      // After rigged spins → just spin on current fullData
+      batch = fullData;
+      if (!Array.isArray(batch) || batch.length === 0) {
+        console.warn("No participants available for this spin.");
+        isSpinning.current = false;
+        return;
+      }
       winnerIndex = Math.floor(Math.random() * batch.length);
       winner = batch[winnerIndex];
     }
@@ -125,7 +138,7 @@ const Wheel = ({
         popup.style.display = 'block';
         document.getElementById('popupWinnerName').textContent = winner.name;
         document.getElementById('popupCombination').textContent = winner.ticketNumber;
-        setIsPopupVisible(true); // ✅ block background
+        setIsPopupVisible(true);
       }
 
       applauseRef.current?.play().catch(console.warn);
@@ -139,16 +152,15 @@ const Wheel = ({
           clearInterval(checkPopupClose);
           applauseRef.current?.pause();
           applauseRef.current.currentTime = 0;
-          setImageIndex(prev => (prev + 1) % imageList.length);
-          setIsPopupVisible(false); // ✅ allow interaction again
-
-          if (spinCount.current === 4) setShowBlankScreen(true);
+          setIsPopupVisible(false);
           if (onSpinEnd) onSpinEnd();
 
           intervalRef.current = setInterval(() => {
-            const newBatch = getRandomBatch(fullData);
-            setCurrentVisualData(newBatch);
-            setSliceAngle(360 / newBatch.length);
+            if (fullData && fullData.length > 0) {
+              const newBatch = getRandomBatch(fullData);
+              setCurrentVisualData(newBatch);
+              setSliceAngle(360 / newBatch.length);
+            }
           }, 100);
         }
       }, 300);
@@ -175,7 +187,8 @@ const Wheel = ({
     const totalEntries = currentVisualData.length;
     const minimalTextThreshold = 1000;
 
-    currentVisualData.forEach((p, index) => {
+    (currentVisualData || []).forEach((p, index) => {
+      if (!p) return;
       const startAngle = index * sliceAngle;
       const endAngle = startAngle + sliceAngle;
       const largeArc = sliceAngle > 180 ? 1 : 0;
@@ -224,21 +237,13 @@ const Wheel = ({
 
   return (
     <>
-      {showBlankScreen && (
-        <div style={{
-          position: 'fixed',
-          top: 0, left: 0, width: '100vw', height: '100vh',
-          backgroundColor: 'black', zIndex: 9999
-        }} />
-      )}
-
       {isPopupVisible && (
-        <div className="interaction-blocker"></div> // ✅ disables interaction without touching popup
+        <div className="interaction-blocker"></div>
       )}
 
       <div className="wheel-container">
         <div className="pointer"></div>
-        <WheelCenterImage src={imageList[imageIndex]} />
+        <WheelCenterImage src={currentFilePicture || '/images/default.jpg'} />
         <div className="wheel outer-wheel" ref={outerWheelRef} id="outerWheel">
           <svg width="550" height="550" viewBox="0 0 550 550">
             {renderWheelSlices()}

@@ -20,6 +20,9 @@ const Home = () => {
   const [customColors, setCustomColors] = useState([]);
   const [selectedSound, setSelectedSound] = useState('spin2.mp3');
   const [applauseSound, setApplauseSound] = useState('applause1');
+  const [currentFilePicture, setCurrentFilePicture] = useState(null);
+  const [showBlackScreen, setShowBlackScreen] = useState(false);
+
 
   const isSpinningRef = useRef(false);
 
@@ -31,27 +34,28 @@ const Home = () => {
 
   // fetch files & participants from backend
   useEffect(() => {
-  const fetchFiles = async () => {
-    try {
-      const res = await fetch("http://127.0.0.1:8000/api/spins/list/");
-      const data = await res.json();
+    const fetchFiles = async () => {
+      try {
+        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/spins/list/`);
+        const data = await res.json();
 
-      const transformedFiles = (data || []).map(file => ({
-        ...file,
-        participants: (file.json_content || []).map(p => ({
-          name: `${p["First Name"]} ${p["Last Name"]}`,
-          ticketNumber: p["Ticket Number"]
-        }))
-      }));
+        const transformedFiles = (data || []).map(file => ({
+          ...file,
+          picture: file.picture,
+          participants: (file.json_content || []).map(p => ({
+            name: `${p["First Name"]} ${p["Last Name"]}`,
+            ticketNumber: p["Ticket Number"]
+          }))
+        }));
 
-      setFilesData(transformedFiles);
-    } catch (err) {
-      console.error("Error fetching files:", err);
-    }
-  };
+        setFilesData(transformedFiles);
+      } catch (err) {
+        console.error("Error fetching files:", err);
+      }
+    };
 
-  fetchFiles();
-}, []);
+    fetchFiles();
+  }, []);
 
   const getRandomBatch = (fullList, winner = null) => {
     const pool = [...fullList];
@@ -72,24 +76,43 @@ const Home = () => {
 
     const nextSpin = spinCount + 1;
 
-    // pick dataset based on spin count
-    let dataset = filesData[3]?.participants || []; // default = 4th file
+    let dataset = [];
     let winner = null;
+    let picture = null;
 
     if (nextSpin === 1 && filesData[0]) {
       dataset = filesData[0].participants;
       winner = riggedWinnersList[0];
+      picture = filesData[0].picture;
     } else if (nextSpin === 2 && filesData[1]) {
       dataset = filesData[1].participants;
       winner = riggedWinnersList[1];
+      picture = filesData[1].picture;
     } else if (nextSpin === 3 && filesData[2]) {
       dataset = filesData[2].participants;
       winner = riggedWinnersList[2];
+      picture = filesData[2].picture;
+    } else {
+      // After first 3 spins → use each file only once
+      const nextIndex = (nextSpin - 1); // ✅ sequential, no modulo
+
+      if (nextIndex < filesData.length) {
+        dataset = filesData[nextIndex]?.participants || [];
+        picture = filesData[nextIndex]?.picture || null;
+      } else {
+        console.warn("All files have been used. No more spins available.");
+        setFullData([]);
+        setCurrentData([]);
+        setCurrentFilePicture(null);
+        setShowBlackScreen(true); // ✅ activate black screen
+        return; // ✅ stop here so it won’t repeat
+      }
     }
 
     setFullData(dataset);
     const batch = getRandomBatch(dataset, winner);
     setCurrentData(batch);
+    setCurrentFilePicture(picture); // ✅ set picture dynamically
   };
 
   useEffect(() => {
@@ -107,6 +130,18 @@ const Home = () => {
 
   return (
     <>
+    {showBlackScreen && (
+  <div style={{
+    position: "fixed",
+    top: 0,
+    left: 0,
+    width: "100vw",
+    height: "100vh",
+    backgroundColor: "black",
+    zIndex: 99999
+  }} />
+)}
+
       <div className='overlay'>
         <WheelOverlay
           onColorsChange={setCustomColors}
@@ -131,6 +166,7 @@ const Home = () => {
               applauseSound={applauseSound}
               onSpinStart={handleSpinStart}
               onSpinEnd={handleSpinEnd}
+              currentFilePicture={currentFilePicture} // ✅ pass current picture
             />
             <Controls />
             <Results />

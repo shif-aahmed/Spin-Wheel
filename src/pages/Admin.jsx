@@ -21,7 +21,7 @@ const Admin = () => {
   // ✅ Fetch all files (active + inactive) for Admin panel
   const fetchFiles = async () => {
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/spins/admin-list/");
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/spins/admin-list/`);
       const data = await response.json();
       setRows(
         data.map((file) => ({
@@ -42,7 +42,7 @@ const Admin = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/spins/check-password/', {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/spins/check-password/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password: passwordInput }),
@@ -93,7 +93,7 @@ const Admin = () => {
   // ✅ Toggle active/inactive on backend + UI
   const toggleActive = async (id) => {
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/spins/toggle-active/${id}/`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/spins/toggle-active/${id}/`, {
         method: 'PATCH',
       });
       const data = await response.json();
@@ -115,7 +115,7 @@ const Admin = () => {
   // ✅ Delete row from backend + UI
   const handleDeleteRow = async (id) => {
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/spins/delete/${id}/`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/spins/delete/${id}/`, {
         method: "DELETE",
       });
       if (response.ok) {
@@ -143,7 +143,7 @@ const Admin = () => {
         formData.append('active', row.active);
         formData.append('password', passwordInput);
 
-        const response = await fetch('http://127.0.0.1:8000/api/spins/upload/', {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/spins/upload/`, {
           method: 'POST',
           body: formData,
         });
