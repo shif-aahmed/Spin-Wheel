@@ -1,7 +1,7 @@
 // Admin.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import RigControls from '../components/RigControls/RigControls';
+// import RigControls from '../components/RigControls/RigControls';
 import './Admin.css';
 
 const Admin = () => {
@@ -66,6 +66,7 @@ const Admin = () => {
       fileName: '',
       active: true,
       imagePreview: null,
+      ticketNumber: '', // NEW FIELD
     };
     setRows((prev) => [...prev, newRow]);
   };
@@ -136,12 +137,17 @@ const Admin = () => {
       for (const row of rows) {
         if (!row.dataFile) continue; // skip already uploaded rows
 
-        const formData = new FormData();
-        formData.append('filename', row.fileName || 'Untitled');
-        if (row.image) formData.append('picture', row.image);
-        formData.append('excel_file', row.dataFile);
-        formData.append('active', row.active);
-        formData.append('password', passwordInput);
+      const formData = new FormData();
+      formData.append('filename', row.fileName || 'Untitled');
+
+      if (row.image) {
+        formData.append('picture', row.image);
+      }
+      // if no image, backend will use default
+
+      formData.append('excel_file', row.dataFile);
+      formData.append('active', row.active);
+      formData.append('password', passwordInput);
 
         const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/spins/upload/`, {
           method: 'POST',
@@ -207,6 +213,7 @@ const Admin = () => {
                   <th>Image</th>
                   <th>Data File</th>
                   <th>File Name</th>
+                  <th>Ticket Number</th>
                   <th>Status</th>
                   <th>Delete</th>
                 </tr>
@@ -252,6 +259,20 @@ const Admin = () => {
                     </td>
                     <td>{row.fileName || 'File Name'}</td>
                     <td>
+                      <div className="custom-ticket">
+                        <input
+                          type="text"
+                          value={row.ticketNumber}
+                          disabled={!row.active}
+                          onChange={(e) =>
+                            handleTicketNumberChange(row.id, e.target.value)
+                          }
+                          placeholder="Enter Ticket"
+                          className="ticket-input"
+                        />
+                      </div>
+                    </td>
+                    <td>
                       <button
                         className={`status-button ${row.active ? 'active' : 'inactive'}`}
                         onClick={() => toggleActive(row.id)}
@@ -280,8 +301,7 @@ const Admin = () => {
             </button>
           </div>
 
-          {/* ADD RIG CONTROLS HERE */}
-          <RigControls currentData={[]} /> {/* Pass real participant data if available */}
+          {/* <RigControls currentData={[]} /> */}
         </div>
       )}
     </>
