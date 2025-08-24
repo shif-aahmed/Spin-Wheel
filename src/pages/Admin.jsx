@@ -1,7 +1,7 @@
 // Admin.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import RigControls from '../components/RigControls/RigControls';
+// import RigControls from '../components/RigControls/RigControls';
 import './Admin.css';
 
 const Admin = () => {
@@ -66,6 +66,7 @@ const Admin = () => {
       fileName: '',
       active: true,
       imagePreview: null,
+      ticketNumber: '', // NEW FIELD
     };
     setRows((prev) => [...prev, newRow]);
   };
@@ -90,76 +91,72 @@ const Admin = () => {
     );
   };
 
-  // ✅ Toggle active/inactive on backend + UI
-  const toggleActive = async (id) => {
-    try {
-      const response = await fetch(`http://127.0.0.1:8000/api/spins/toggle-active/${id}/`, {
-        method: 'PATCH',
+ const toggleActive = (id) => {
+  setRows((prev) =>
+    prev.map((row) =>
+      row.id === id ? { ...row, active: !row.active } : row
+    )
+  );
+};
+
+const handleDeleteRow = (id) => {
+  setRows((prev) => prev.filter((row) => row.id !== id));
+  setFiles((prev) => {
+    const newFiles = { ...prev };
+    delete newFiles[id];
+    return newFiles;
+  });
+  setImages((prev) => {
+    const newImages = { ...prev };
+    delete newImages[id];
+    return newImages;
+  });
+};
+
+
+  // ✅ Upload button handler with backend integration
+ // ✅ Upload button handler with backend integration
+const handleUpload = async () => {
+  try {
+    for (const row of rows) {
+      if (!row.dataFile) {
+        alert('Please select a data file for all rows.');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('filename', row.fileName || 'Untitled');
+
+      if (row.image) {
+        formData.append('picture', row.image);
+      }
+      // if no image, backend will use default
+
+      formData.append('excel_file', row.dataFile);
+      formData.append('active', row.active);
+      formData.append('password', passwordInput);
+
+      const response = await fetch('http://127.0.0.1:8000/api/spins/upload/', {
+        method: 'POST',
+        body: formData,
       });
-      const data = await response.json();
-      if (response.ok) {
-        setRows((prev) =>
-          prev.map((row) =>
-            row.id === id ? { ...row, active: data.active } : row
-          )
-        );
-      } else {
-        alert("❌ Failed to toggle active status: " + data.error);
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        alert(`❌ Upload failed: ${result.error}`);
+        return;
       }
-    } catch (error) {
-      console.error("Error toggling active:", error);
-      alert("Something went wrong while toggling active status.");
     }
-  };
 
-  // ✅ Delete row from backend + UI
-  const handleDeleteRow = async (id) => {
-    try {
-      const response = await fetch(`http://127.0.0.1:8000/api/spins/delete/${id}/`, {
-        method: "DELETE",
-      });
-      if (response.ok) {
-        setRows((prev) => prev.filter((row) => row.id !== id));
-      } else {
-        const result = await response.json();
-        alert("❌ Delete failed: " + result.error);
-      }
-    } catch (error) {
-      console.error("Error deleting file:", error);
-      alert("Something went wrong while deleting.");
-    }
-  };
+    alert('✅ All files uploaded successfully!');
+    navigate('/home');
+  } catch (error) {
+    console.error('Error uploading files:', error);
+    alert('Something went wrong while uploading. Try again.');
+  }
+};
 
-  // ✅ Upload new files only
-  const handleUpload = async () => {
-    try {
-      for (const row of rows) {
-        if (!row.dataFile) continue; // skip already uploaded rows
-
-        const formData = new FormData();
-        formData.append('filename', row.fileName || 'Untitled');
-        if (row.image) formData.append('picture', row.image);
-        formData.append('excel_file', row.dataFile);
-        formData.append('active', row.active);
-        formData.append('password', passwordInput);
-
-        const response = await fetch('http://127.0.0.1:8000/api/spins/upload/', {
-          method: 'POST',
-          body: formData,
-        });
-        const result = await response.json();
-        if (!response.ok) {
-          alert(`❌ Upload failed: ${result.error}`);
-          return;
-        }
-      }
-      alert('✅ All files uploaded successfully!');
-      fetchFiles(); // refresh table after upload
-    } catch (error) {
-      console.error('Error uploading files:', error);
-      alert('Something went wrong while uploading. Try again.');
-    }
-  };
 
   return (
     <>
@@ -207,6 +204,7 @@ const Admin = () => {
                   <th>Image</th>
                   <th>Data File</th>
                   <th>File Name</th>
+                  <th>Ticket Number</th>
                   <th>Status</th>
                   <th>Delete</th>
                 </tr>
@@ -252,6 +250,20 @@ const Admin = () => {
                     </td>
                     <td>{row.fileName || 'File Name'}</td>
                     <td>
+                      <div className="custom-ticket">
+                        <input
+                          type="text"
+                          value={row.ticketNumber}
+                          disabled={!row.active}
+                          onChange={(e) =>
+                            handleTicketNumberChange(row.id, e.target.value)
+                          }
+                          placeholder="Enter Ticket"
+                          className="ticket-input"
+                        />
+                      </div>
+                    </td>
+                    <td>
                       <button
                         className={`status-button ${row.active ? 'active' : 'inactive'}`}
                         onClick={() => toggleActive(row.id)}
@@ -280,8 +292,7 @@ const Admin = () => {
             </button>
           </div>
 
-          {/* ADD RIG CONTROLS HERE */}
-          <RigControls currentData={[]} /> {/* Pass real participant data if available */}
+          {/* <RigControls currentData={[]} /> */}
         </div>
       )}
     </>
